@@ -1,0 +1,6 @@
+[Dd]ebug*/
+[Rr]elease*/
+*.sdf
+*.suo
+build*/
+js/.idea/workspace.xml

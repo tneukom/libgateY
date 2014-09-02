@@ -1,0 +1,10 @@
+Forked from libwebsockets (licensed under LGPL with static link exception)
+Source and header files taken from a minimal build (without client, wihtout daemonize, no extensions)
+
+Changed includes to:
+
+#ifndef WEBSOCKET_IS_AMALGAMATION
+#include "..."
+#endif
+
+To allow single header / single cpp file script

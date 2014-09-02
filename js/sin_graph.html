@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    .area {
+        fill: steelblue;
+    }
+</style>
+<body>
+<link href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
+<script src="//d3js.org/d3.v3.js"></script>
+<script src="gateY.js"></script>
+<script>
+    "use strict";
+
+    var width = 960, height = 500;
+
+    var x = d3.scale.linear().range([0, width]).domain([0, 100]);
+    var y = d3.scale.linear().range([-height/2, height/2]).domain([-1, 1]);
+
+    var area = d3.svg.area()
+            .x(function(d, i) { return 5*i; })
+            .y0(height/2)
+            .y1(function(d) { return height/2+y(d.y); });
+
+    var svg = d3.select("body").append("svg")
+            .attr("width", 960)
+            .attr("height", 500)
+
+    var data = [];
+    var t = 0;
+
+    var path = svg.append("path").data([data]);
+
+    var gY = new gatey.ReadVariable('y', 0);
+    var dataSize = 100;
+
+    var refresh = function(item) {
+        data.push({t: t, y: item[1]});
+
+        if(data.length > dataSize)
+            data.splice(0, data.length - dataSize);
+
+        path
+                .attr("class", "area")
+                .attr("d", area);
+
+        $('#y').html(t + "," + JSON.stringify(item));
+
+        t++;
+    }
+    gY.onChange = refresh;
+
+    var gDt = new gatey.WriteVariable('dt');
+    var gC = new gatey.WriteVariable('c');
+
+    function slideUpdate() {
+        gC.set($("#slider_c").slider("value") / 100);
+        gDt.set($("#slider_dt").slider("value") / 200)
+    }
+
+    $(function() {
+        $('#slider_dt').slider({
+            min: 0, max: 100, value: 1,
+            slide: slideUpdate,
+            change: slideUpdate
+        });
+
+        $('#slider_c').slider({
+            min: 0, max: 100, value: 1,
+            slide: slideUpdate,
+            change: slideUpdate
+        });
+    });
+
+</script>
+<h1 id="y"></h1>
+<div id="slider_dt"></div>
+<div id="slider_c"></div>
+</body>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    body {
+        font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    .area {
+        fill: steelblue;
+    }
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.js"></script>
+<script src="gateY.js"></script>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script>
+    "use strict";
+
+    var width = 960, height = 500;
+
+    var x = d3.time.scale().range([0, width]);
+    var y = d3.scale.linear().range([height, 0]);
+    var z = d3.scale.linear().range(["white", "steelblue"]).domain([0, 100]);
+
+    var svg = d3.select("body").append("svg")
+            .attr("width", 960)
+            .attr("height", 500)
+
+//    var data = [{x: 0, y: -1}, {x: 1, y: 0}, {x: 3, y: 1}, {x: 4, y: -1}];
+    var data = [{x: 0, y: 0}];
+    var t = 5;
+
+    x.domain([]);
+    y.domain([-1, 1]);
+
+    var heatmap = svg.append('g');
+
+    var refresh = function(heat) {
+        var map = [];
+
+        for(var row = 0; row < heat.length; ++row) {
+            for(var col = 0; col < heat[row].length; ++col) {
+                map.push({pos: [row, col], value: heat[row][col]});
+            }
+        }
+
+        var selection = heatmap.selectAll('rect')
+                .data(map)
+
+        selection.enter()
+                .append('rect')
+                .attr('x', function (d) { return 10 * d.pos[0] })
+                .attr('y', function (d) { return 10 * d.pos[1] })
+                .attr('width', 10)
+                .attr('height', 10)
+
+        selection
+                .style("fill", function(d) { return z(d.value); });
+    }
+
+
+    var gField = new ReadVariable('field');
+
+    gField.onChange = function(field) {
+        refresh(field);
+
+//        $('#y').html(JSON.stringify(field));
+    };
+
+
+</script>
+<h1 id="y"></h1>
+</body>
