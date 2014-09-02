@@ -3,6 +3,11 @@
 #include <chrono>
 #include <cmath>
 
+/*
+* Compile together with ../../gatey.cpp
+* Windows need ws2_32.lib (Visual Studio will automatically add it because of #pragma comment(lib, "ws2_32.lib")
+*/
+
 int main() {
 	std::chrono::milliseconds dura(20);
 	gatey::global = std::make_shared<gatey::GateY>();

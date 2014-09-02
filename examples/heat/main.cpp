@@ -4,6 +4,11 @@
 #include <cmath>
 #include <iostream>
 
+/*
+ * Compile together with ../../gatey.cpp
+ * Windows need ws2_32.lib (Visual Studio will automatically add it because of #pragma comment(lib, "ws2_32.lib")
+ */
+
 int main() {
 	std::chrono::milliseconds dura(20);
 	gatey::global = std::make_shared<gatey::GateY>();
@@ -18,6 +23,7 @@ int main() {
 	double alpha = 1.0;
 	double dt = 1.0 / 30;
 	while (true) {
+		std::cout << "Enter key to start heat equation" << std::endl;
 		char c;
 		std::cin >> c;
 

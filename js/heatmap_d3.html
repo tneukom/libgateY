@@ -19,9 +19,9 @@
 
 </style>
 <body>
-<script src="//d3js.org/d3.v3.js"></script>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="gateY.js"></script>
-<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 <script>
     "use strict";
 
@@ -68,7 +68,7 @@
     }
 
 
-    var gField = new ReadVariable('field');
+    var gField = new gatey.ReadVariable('field');
 
     gField.onChange = function(field) {
         refresh(field);

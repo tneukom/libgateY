@@ -1,52 +1,49 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <html>
-<head>
-    <link href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css" />
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-    <script src="//code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
-    <script src="gateY.js"></script>
-    <script>
-        "use strict";
-
-        var gDt, gC, gY;
-
-        function refresh() {
-            gC.set($("#slider_c").slider("value") / 100);
-            gDt.set($("#slider_dt").slider("value") / 1000)
-        }
-
-        $(function() {
-            $('#slider_dt').slider({
-                min: 0, max: 100, value: 1,
-                slide: refresh,
-                change: refresh
-            });
-
-            $('#slider_c').slider({
-                min: 0, max: 100, value: 1,
-                slide: refresh,
-                change: refresh
-            });
-        });
-
-
-
-        $(document).ready(function() {
-
-            gDt = new gatey.WriteVariable('dt');
-            gC = new gatey.WriteVariable('c');
-            gY = new gatey.ReadVariable('y', 0);
-
-            gY.onChange = function(xs) {
-                $('#y').html(JSON.stringify(xs));
-            };
-        });
-    </script>
-    <title>Sin</title>
-</head>
 <body>
+<link href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
+<script src="gateY.js"></script>
+<script>
+    "use strict";
+
+    var gDt, gC, gY;
+
+    function refresh() {
+        gC.set($("#slider_c").slider("value") / 100);
+        gDt.set($("#slider_dt").slider("value") / 1000)
+    }
+
+    $(function() {
+        $('#slider_dt').slider({
+            min: 0, max: 100, value: 1,
+            slide: refresh,
+            change: refresh
+        });
+
+        $('#slider_c').slider({
+            min: 0, max: 100, value: 1,
+            slide: refresh,
+            change: refresh
+        });
+    });
+
+
+
+    $(document).ready(function() {
+
+        gDt = new gatey.WriteVariable('dt');
+        gC = new gatey.WriteVariable('c');
+        gY = new gatey.ReadVariable('y', 0);
+
+        gY.onChange = function(xs) {
+            $('#y').html(JSON.stringify(xs));
+        };
+    });
+</script>
 <div id="slider_dt"></div>
 <div id="slider_c"></div>
 <h1 id="y"></h1>
