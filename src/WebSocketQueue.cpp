@@ -22,32 +22,44 @@
 namespace gatey {
 
 	struct PerSession {
-		long long sessionId;
+		SessionId sessionId;
 	};
 
     struct LibWebsocketsCallbackReasonBoxed {
         libwebsocket_callback_reasons value;
     };
 
-	int callback_impl(libwebsocket_context *context, libwebsocket *wsi, libwebsocket_callback_reasons reason, void *user, void *in, size_t len);
-    int callback(libwebsocket_context *context, libwebsocket *wsi, LibWebsocketsCallbackReasonBoxed const& reasonBoxed, void *user, void *in, size_t len);
+	int callback_impl(libwebsocket_context *context, libwebsocket *wsi,
+                      libwebsocket_callback_reasons reason, void *user,
+                      void *in, size_t len);
+    
+    int callback(libwebsocket_context *context, libwebsocket *wsi,
+                 LibWebsocketsCallbackReasonBoxed const& reasonBoxed,
+                 void *user, void *in, size_t len);
 
     static libwebsocket_protocols protocols[] = {
-			{ "gatey", &callback_impl, sizeof(PerSession), 0 },
+        { "gatey", &callback_impl, sizeof(PerSession), 0 },
         { 0 }
     };
 
     static libwebsocket_protocols *webSocketProtocol = &protocols[0];
 
 	//Called in the server thread
-    int callback_impl(libwebsocket_context *context, libwebsocket *wsi, libwebsocket_callback_reasons reason, void *user, void *in, size_t len) {
+    int callback_impl(libwebsocket_context *context, libwebsocket *wsi,
+                      libwebsocket_callback_reasons reason, void *user,
+                      void *in, size_t len)
+    {
         LibWebsocketsCallbackReasonBoxed reasonBoxed = { reason };
         return callback(context, wsi, reasonBoxed, user, in, len);
     }
 
-    int callback(libwebsocket_context *context, libwebsocket *wsi, LibWebsocketsCallbackReasonBoxed const& reasonBoxed, void *user, void *in, size_t len) {
+    int callback(libwebsocket_context *context, libwebsocket *wsi,
+                 LibWebsocketsCallbackReasonBoxed const& reasonBoxed,
+                 void *user, void *in, size_t len)
+    {
         WebSocketQueue *self = (WebSocketQueue*)libwebsocket_context_user(context);
         PerSession *perSession = (PerSession*)user;
+        SessionId sessionId = perSession->sessionId;
         libwebsocket_callback_reasons reason = reasonBoxed.value;
 
 		// reason for callback
@@ -75,7 +87,7 @@ namespace gatey {
 			std::string messageStr(bytes, bytes + len);
 			{
 				std::lock_guard<std::mutex> guard(self->mutex_);
-				self->inMessages_.push_back(std::move(messageStr));
+				self->inMessages_.emplace_back(perSession->sessionId, std::move(messageStr));
 				GATEY_LOG("received message");
 			}
 
@@ -83,25 +95,40 @@ namespace gatey {
 		}
 		case LWS_CALLBACK_SERVER_WRITEABLE: {
 			//Send messages from the queue
-			std::string message;
+			Message message;
 			{
 				std::lock_guard<std::mutex> guard(self->mutex_);
-				if (self->outMessages_.empty())
+                auto found = std::find(self->outMessages_.begin(), self->outMessages_.end(),
+                                       [sessionId](Message const& message)
+                {
+                    return message.sessionId == sessionId;
+                });
+				if (found == self->outMessages_.end())
 					break;
 
-				message = std::move(self->outMessages_.front());
-				self->outMessages_.pop_front();
+				message = std::move(*found);
+				self->outMessages_.erase(found);
 			}
 
-			std::vector<char> bytes(message.size() + LWS_SEND_BUFFER_PRE_PADDING + LWS_SEND_BUFFER_POST_PADDING);
-			std::copy(message.begin(), message.end(), bytes.begin() + LWS_SEND_BUFFER_PRE_PADDING);
+			std::vector<char> bytes(message.content.size() + LWS_SEND_BUFFER_PRE_PADDING + LWS_SEND_BUFFER_POST_PADDING);
+			std::copy(message.content.begin(), message.content.end(), bytes.begin() + LWS_SEND_BUFFER_PRE_PADDING);
 
-			libwebsocket_write(wsi, (unsigned char*)&bytes[LWS_SEND_BUFFER_PRE_PADDING], message.size(), LWS_WRITE_TEXT);
+			libwebsocket_write(wsi, (unsigned char*)&bytes[LWS_SEND_BUFFER_PRE_PADDING], message.content.size(), LWS_WRITE_TEXT);
 			self->messageSent_ = true;
 			break;
 		}
 		case LWS_CALLBACK_CLOSED: {
 			self->sessions_.erase(perSession->sessionId);
+            std::remove_if(self->outMessages_.begin(), self->outMessages_.end(),
+                           [sessionId](Message const& message)
+            {
+                return message.sessionId == sessionId;
+            });
+            std::remove_if(self->inMessages_.begin(), self->inMessages_.end(),
+                           [sessionId](Message const& message)
+            {
+                return message.sessionId == sessionId;
+            });
 			GATEY_LOG("connection closed" + std::to_string(perSession->sessionId));
 			break;
 		}
@@ -169,15 +196,15 @@ namespace gatey {
 		libwebsocket_service(context_, 10);
 	}
 
-	void WebSocketQueue::send(std::string message) {
+	void WebSocketQueue::send(Message message) {
 		std::lock_guard<std::mutex> guard(mutex_);
 		outMessages_.push_back(std::move(message));
 	}
 
-    std::deque<std::string> WebSocketQueue::receive() {
+    std::deque<Message> WebSocketQueue::receive() {
 		std::lock_guard<std::mutex> guard(mutex_);
 
-        std::deque<std::string> result(std::move(inMessages_));
+        std::deque<Message> result(std::move(inMessages_));
 		return result;
 	}
 

@@ -1,3 +1,7 @@
 - fix issues on disconnect
 - replace libwebsockets with server from gamedevwebtools? 
   Has better license, C++ smaller, but probably less well tested
+- rename openSendGate to publish openReceiveGate to subscribe(string name)
+- c++ adl problem: function serialise is only looked for in the namespace where the first
+  argument lives (for example std for serialize(std::vector, JsonValue).
+  Change JsonValue to gatey::JsonHolder (rename to gatey::Json) is better anyway

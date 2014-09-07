@@ -8,6 +8,7 @@
 
 #ifndef GATEY_IS_AMALGAMATION
 #include "Serialize.hpp"
+#include "WebSocketQueue.hpp"
 #endif
 
 #include <vector>
@@ -20,28 +21,43 @@
 namespace gatey {
 
     struct WebSocketQueue;
-
-    //! internal
-	struct SendGate {
-	};
-
-    //! internal
-	struct ReceiveGate {
-		std::function<void(JsonValue const& json)> receive_;
-
-		ReceiveGate(std::function<void(JsonValue const& json)> receive) :
-			receive_(receive)
-		{
-		}
-	};
-
-    //! internal
-	struct RemoteSendGate {
-	};
-
-    //! internal
-	struct RemoteReceiveGate {
-	};
+    
+    enum class Location {
+        Local,
+        Remote
+    };
+    
+    enum class Direction {
+        Send,
+        Receive
+    };
+    
+    struct Gate {
+        std::string name;
+        Location location; //local for this
+        Direction direction;
+        SessionId sessionId; //undefined for location == Local
+        std::function<void()> callback; //undefiend for location == remote
+    };
+    
+//    Gate {
+//        name = "position",
+//        location = Local,
+//        direction = Receive,
+//        callback = ?
+//    }
+    
+    
+//    Gate {
+//        name = "position",
+//        localtion = Local,
+//        direction = Send,
+//    }
+    
+    
+    
+    // Should it be possible to subscribe to a local channel?
+    // subscribeLocal(string name);
 
     //! open and close gates, which come in two forms: receive gates and send gates
     //! messages can be sent over send gates and a receive gate on the remote side will
@@ -69,11 +85,8 @@ namespace gatey {
 		//! msvc deadlocks if thread::join is called after main exits, see ~GateY for more details
 		std::mutex mutexThreadRunning_;
 #endif
-
-		std::map<std::string, ReceiveGate> receiveGates_;
-		std::map<std::string, RemoteReceiveGate> remoteReceiveGates_;
-		std::map<std::string, SendGate> sendGates_;
-		std::map<std::string, RemoteSendGate> remoteSendGates_;
+        
+        std::vector<Gate> gates_;
 
         //! List of callback that have to be called, callbacks aren't called while
         //! mutex_ is locked because the callback should be able to call GateY functions
@@ -81,7 +94,7 @@ namespace gatey {
 		std::vector<std::function<void()>> callbacks_;
 
         //! Send a json package to remote
-		void sendUnsynced(JsonValue const& json);
+		void sendUnsynced(JsonConstRef json);
 
         //! Send a list of open send and receive gates to remote
 		void sendStateUnsynced();
@@ -115,22 +128,24 @@ namespace gatey {
         //! Stops the server
 		~GateY();
 
-		//! Open receive gate, messages get forwarded to receive function
+        //! subscribe to the channel with the given name
         //! The callback can call functions from GateY
-		void openReceiveGate(std::string const& name, std::function<void(JsonValue const& json)> receive);
+		void subscribe(std::string const& name, std::function<void(JsonConstRef json)> receive);
+        
+        //! Stop receiving messages from name
+		void unsubscribe(std::string const& name);
+        
+        
+        void openReceiveGate(std::string name)
+        
+        //! Announce a station
+        void openSendGate(std::string name);
+        
+        //! Close a station
+        void closeSendGate();
 
-        //! Open a send gate
-		void openSendGate(std::string const& name);
-
-        //! Send a message over the send gate with the given name, the message is only sent if: there is an open
-        //! send the with the given name and there is an open remote receive gate with the given name.
-		void send(std::string const& name, JsonValue const& json);
-
-		//! Closes a recieve gate
-		void closeReceiveGate(std::string const& name);
-
-		//! Close a send gate
-		void closeSendGate(std::string const& name);
+        //! Send a message to all remote clients that subscribed to name
+		void publish(std::string const& name, JsonConstRef json);
 	};
 
     //! global GateY, Variables use this global gateY to open gates

@@ -41,18 +41,18 @@ namespace gatey {
 	}
 
 	void GateY::sendStateUnsynced() {
-		JsonValue jMessage(Json::objectValue);
+        Json::Value jMessage(Json::objectValue);
 		jMessage["cmd"] = "state";
 
-		JsonValue jReceiveGates(Json::objectValue);
+		Json::Value  jReceiveGates(Json::objectValue);
 		for (auto const& pair : receiveGates_) {
-			jReceiveGates[pair.first] = JsonValue(Json::objectValue);
+			jReceiveGates[pair.first] = Json::Value(Json::objectValue);
 		}
 		jMessage["receiveGates"] = jReceiveGates;
 
-		JsonValue jSendGates(Json::objectValue);
+		Json::Value  jSendGates(Json::objectValue);
 		for (auto const& pair : sendGates_) {
-			jSendGates[pair.first] = JsonValue(Json::objectValue);
+			jSendGates[pair.first] = Json::Value(Json::objectValue);
 		}
 		jMessage["sendGates"] = jSendGates;
 
@@ -61,13 +61,13 @@ namespace gatey {
 
 	void GateY::handleMessageUnsynced(std::string const& messageStr) {
 		Json::Reader reader;
-		JsonValue message;
+		Json::Value message;
 		reader.parse(messageStr, message);
 
 		std::string cmd = message["cmd"].asString();
 		if (cmd == "state") {
 			remoteReceiveGates_.clear();
-			JsonValue const& jReceiveGates = message["receiveGates"];
+			Json::Value  const& jReceiveGates = message["receiveGates"];
 			for (::Json::ValueConstIterator iter = jReceiveGates.begin(); iter != jReceiveGates.end(); ++iter) {
 				RemoteReceiveGate remoteReceiveGate;
 				std::string name = iter.memberName();
@@ -75,7 +75,7 @@ namespace gatey {
 			}
 
 			remoteSendGates_.clear();
-			JsonValue const& jSendGates = message["sendGates"];
+			Json::Value  const& jSendGates = message["sendGates"];
 			for (::Json::ValueConstIterator iter = jSendGates.begin(); iter != jSendGates.end(); ++iter) {
 				RemoteSendGate remoteSendGate;
 				std::string name = iter.memberName();
@@ -92,7 +92,7 @@ namespace gatey {
 
 			ReceiveGate& gate = found->second;
 
-			JsonValue const& content = message["content"];
+			JsonConstRef content = message["content"];
 			if (gate.receive_ != nullptr) {
 				callbacks_.push_back(std::bind(gate.receive_, content));
 				//gate.receive_(content);
@@ -142,7 +142,7 @@ namespace gatey {
 	}
 
 
-	void GateY::openReceiveGate(std::string const& name, std::function<void(JsonValue const& json)> receive) {
+	void GateY::openReceiveGate(std::string const& name, std::function<void(JsonConstRef json)> receive) {
 		std::lock_guard<std::mutex> guard(mutex_);
 
 		auto found = receiveGates_.find(name);
@@ -172,13 +172,13 @@ namespace gatey {
 		stateModified_ = true;
 	}
 
-	void GateY::sendUnsynced(JsonValue const& json) {
+	void GateY::sendUnsynced(JsonConstRef json) {
 		Json::FastWriter jsonWriter;
-		std::string messageStr = jsonWriter.write(json);
+		std::string messageStr = jsonWriter.write(json.json_);
 		webSocket_->send(messageStr);
 	}
 
-	void GateY::send(std::string const& name, JsonValue const& content) {
+	void GateY::send(std::string const& name, JsonConstRef content) {
 		auto foundLocalGate = sendGates_.find(name);
 		if (foundLocalGate == sendGates_.end()) {
 			GATEY_LOG("can't send message, no local send gate open with name: " + name);
@@ -191,10 +191,10 @@ namespace gatey {
 			return;
 		}
 
-		JsonValue message;
+		Json::Value  message;
 		message["cmd"] = "message";
 		message["name"] = name;
-		message["content"] = content;
+		message["content"] = content.json_;
 		sendUnsynced(message);
 	}
 

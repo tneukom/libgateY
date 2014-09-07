@@ -45,7 +45,7 @@ namespace gatey {
 		//! and then sent to remote if it has a corresponding ReadVariable
 		//TODO: Only serialize if 
 		void set(T const& value) {
-			json::Holder json;
+            JsonHolder json;
 			serialize(value, *json);
 			gateY_->send(name_, *json);
 		}
@@ -77,7 +77,7 @@ namespace gatey {
 			content_(std::move(content)),
 			gateY_(gateY)
 		{
-			gateY_->openReceiveGate(name_, [this](JsonValue const& jMessage) {
+			gateY_->openReceiveGate(name_, [this](JsonConstRef jMessage) {
 				std::lock_guard<std::recursive_mutex> guard(mutex_);
 				deserialize(jMessage, content_);
 				if (onChange != nullptr)

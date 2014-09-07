@@ -18,6 +18,28 @@ struct libwebsocket_context;
 struct libwebsocket;
 
 namespace gatey {
+    
+    typedef long long SessionId;
+    
+    struct Message {
+        std::string content;
+        SessionId sessionId;
+        
+        Message() : sessionId(-1) {
+        }
+        
+        Message(SessionId sessionId, std::string content) :
+            sessionId(sessionId),
+            content(std::move(content))
+        {
+        }
+        
+        Message(Message const& other) = delete;
+        Message(Message&& other) = default;
+        
+        Message& operator=(Message const& other) = delete;
+        Message& operator=(Message&& other) = default;
+    };
 
     //! So we don't have to include the libwebsockets header
     struct LibWebsocketsCallbackReasonBoxed;
@@ -26,10 +48,10 @@ namespace gatey {
     struct WebSocketQueue {
 	private:
 		bool messageSent_;
-		long long nextUniqueSessionId_;
+		SessionId nextUniqueSessionId_;
 
         //! List of unique session ids, at the moment only one session at a time is possible
-		std::set<long long> sessions_;
+		std::set<SessionId> sessions_;
 
 		libwebsocket_context *context_;
 
@@ -39,18 +61,18 @@ namespace gatey {
 
         //! Incoming messages, std::string has a nothrow move constructor, therefore
         //! resize should not be a problem
-        std::deque<std::string> inMessages_;
+        std::deque<Message> inMessages_;
 
         //! Outgoing messages
-        std::deque<std::string> outMessages_;
+        std::deque<Message> outMessages_;
 
 	public:
 		//! send, empty, receive can be called from different threads use work only in the one thread
 		//! Put message on queue to send
-		void send(std::string message);
+		void send(Message message);
 
         //! returns a list of new messages
-        std::deque<std::string> receive();
+        std::deque<Message> receive();
 
         //! call this to do the actual work: send and receiving messages handling network stuff ...
 		void work();
@@ -59,7 +81,8 @@ namespace gatey {
 		~WebSocketQueue();
 
         friend int callback(struct libwebsocket_context *context, libwebsocket *wsi,
-                            LibWebsocketsCallbackReasonBoxed const& reasonBoxed, void *user, void *in, size_t len);
+                            LibWebsocketsCallbackReasonBoxed const& reasonBoxed,
+                            void *user, void *in, size_t len);
 	};
 
 }
