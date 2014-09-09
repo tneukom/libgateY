@@ -12,6 +12,7 @@
 #endif
 
 #include <vector>
+#include <list>
 #include <map>
 #include <mutex>
 #include <string>
@@ -21,43 +22,63 @@
 namespace gatey {
 
     struct WebSocketQueue;
+
+    //! internal
+	struct Emitter {
+        std::string name_;
+        
+        Emitter() = default;
+        
+        Emitter(std::string name) :
+            name_(std::move(name))
+        {
+        }
+	};
+
+    //! internal
+	struct Subscription {
+        std::string name_;
+        // std::string identifier_; maybe in the future
+		std::function<void(JsonConstRef json)> receive_;
+        
+        Subscription() = default;
+        
+        Subscription(std::string name, std::function<void(JsonConstRef json)> receive) :
+            name_(std::move(name)),
+            receive_(std::move(receive))
+        {
+        }
+	};
     
-    enum class Location {
-        Local,
-        Remote
-    };
-    
-    enum class Direction {
-        Send,
-        Receive
-    };
-    
-    struct Gate {
-        std::string name;
-        Location location; //local for this
-        Direction direction;
-        SessionId sessionId; //undefined for location == Local
-        std::function<void()> callback; //undefiend for location == remote
-    };
-    
-//    Gate {
-//        name = "position",
-//        location = Local,
-//        direction = Receive,
-//        callback = ?
-//    }
-    
-    
-//    Gate {
-//        name = "position",
-//        localtion = Local,
-//        direction = Send,
-//    }
-    
-    
-    
-    // Should it be possible to subscribe to a local channel?
-    // subscribeLocal(string name);
+    //! internal
+	struct RemoteEmitter {
+        std::string name_;
+        SessionId sessionId_;
+        
+        RemoteEmitter() = default;
+        
+        RemoteEmitter(std::string name, SessionId sessionId) :
+            name_(std::move(name)),
+            sessionId_(sessionId)
+        {
+        }
+	};
+
+    //! internal
+	struct RemoteSubscription {
+        std::string name_;
+        SessionId sessionId_;
+        
+        RemoteSubscription() = default;
+        
+        RemoteSubscription(std::string name, SessionId sessionId) :
+            name_(std::move(name)),
+            sessionId_(sessionId)
+        {
+        }
+	};
+
+
 
     //! open and close gates, which come in two forms: receive gates and send gates
     //! messages can be sent over send gates and a receive gate on the remote side will
@@ -85,8 +106,11 @@ namespace gatey {
 		//! msvc deadlocks if thread::join is called after main exits, see ~GateY for more details
 		std::mutex mutexThreadRunning_;
 #endif
-        
-        std::vector<Gate> gates_;
+
+		std::vector<Subscription> subscriptions_;
+		std::vector<RemoteSubscription> remoteSubscriptions_;
+		std::vector<Emitter> emitters_;
+		std::vector<RemoteEmitter> remoteEmitters_;
 
         //! List of callback that have to be called, callbacks aren't called while
         //! mutex_ is locked because the callback should be able to call GateY functions
@@ -94,7 +118,10 @@ namespace gatey {
 		std::vector<std::function<void()>> callbacks_;
 
         //! Send a json package to remote
-		void sendUnsynced(JsonConstRef json);
+		void sendUnsynced(std::set<SessionId> sessions, JsonConstRef json);
+        
+        //! Send a json package to all remotes
+        void broadcastUnsynced(JsonConstRef json);
 
         //! Send a list of open send and receive gates to remote
 		void sendStateUnsynced();
@@ -103,7 +130,7 @@ namespace gatey {
         //! - state change
         //! - content
         //! - init
-		void handleMessageUnsynced(std::string const& messageStr);
+		void handleMessageUnsynced(InMessage const& message);
 
 
         //! Calls all the callbacks_ and clears it
@@ -113,39 +140,47 @@ namespace gatey {
 		void work();
 
         //! Close the receive gate with the given name and sends a state update
-		void closeReceiveGateUnsynced(std::string const& name);
+		void unsubscribeUnsynced(std::string const& name);
 
         //! Close the send gate with the given name
-		void closeSendGateUnsynced(std::string const& name);
+		void closeEmitterUnsynced(std::string const& name);
 
         //! Start the server
         void start();
+        
+        std::vector<Subscription>::iterator findSubscriptionUnsynced(std::string const& name);
+        
+        std::vector<Emitter>::iterator findEmitterUnsynced(std::string const& name);
+        
+        std::vector<RemoteEmitter>::iterator findRemoteEmitterUnsynced(std::string const& name);
+        
+        std::vector<RemoteSubscription>::iterator findRemoteSubscriptionUnsynced(std::string const& name);
+        
+        std::set<SessionId> collectRemoteSubscriptions(std::string const& name);
 
 	public:
+        
         //! Starts the server
 		GateY();
 
         //! Stops the server
 		~GateY();
-
-        //! subscribe to the channel with the given name
-        //! The callback can call functions from GateY
-		void subscribe(std::string const& name, std::function<void(JsonConstRef json)> receive);
         
-        //! Stop receiving messages from name
-		void unsubscribe(std::string const& name);
+        // Subscribe to receive all messages with the given name
+        void subscribe(std::string const& name, std::function<void(JsonConstRef json)> receive);
         
+        // Unsubscribe from receiving messages with the given name
+        void unsubscribe(std::string const& name);
         
-        void openReceiveGate(std::string name)
+        // Send a message with the given name
+        void emit(std::string const& name, JsonConstRef json);
         
-        //! Announce a station
-        void openSendGate(std::string name);
+        // Announce the sending of message with the given name
+        void openEmitter(std::string const& name);
         
-        //! Close a station
-        void closeSendGate();
-
-        //! Send a message to all remote clients that subscribed to name
-		void publish(std::string const& name, JsonConstRef json);
+        // Unannounce the sending of messages with the given name
+        void closeEmitter(std::string const& name);
+        
 	};
 
     //! global GateY, Variables use this global gateY to open gates

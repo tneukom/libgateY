@@ -8,6 +8,7 @@
 
 //#define GATEY_LOG_ENABLED
 
+#define GATEY_LOG_ENABLED
 #ifdef GATEY_LOG_ENABLED
 
 #include <string>

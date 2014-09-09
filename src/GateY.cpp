@@ -44,57 +44,61 @@ namespace gatey {
         Json::Value jMessage(Json::objectValue);
 		jMessage["cmd"] = "state";
 
-		Json::Value  jReceiveGates(Json::objectValue);
-		for (auto const& pair : receiveGates_) {
-			jReceiveGates[pair.first] = Json::Value(Json::objectValue);
+		Json::Value jSubscriptions(Json::arrayValue);
+		for (Subscription const& subscription : subscriptions_) {
+            Json::Value jSubscription(Json::objectValue);
+            jSubscription["name"] = Json::Value(subscription.name_);
+			jSubscriptions.append(jSubscription);
 		}
-		jMessage["receiveGates"] = jReceiveGates;
+		jMessage["subscriptions"] = jSubscriptions;
 
-		Json::Value  jSendGates(Json::objectValue);
-		for (auto const& pair : sendGates_) {
-			jSendGates[pair.first] = Json::Value(Json::objectValue);
+		Json::Value jEmitters(Json::arrayValue);
+		for (Emitter const& emitter : emitters_) {
+            Json::Value jEmitter(Json::objectValue);
+            jEmitter["name"] = Json::Value(emitter.name_);
+            jEmitters.append(jEmitter);
 		}
-		jMessage["sendGates"] = jSendGates;
+		jMessage["emitters"] = jEmitters;
 
-		sendUnsynced(jMessage);
+        std::set<SessionId> sessions = webSocket_->sessions();
+		sendUnsynced(sessions, jMessage);
 	}
 
-	void GateY::handleMessageUnsynced(std::string const& messageStr) {
+	void GateY::handleMessageUnsynced(InMessage const& message) {
 		Json::Reader reader;
-		Json::Value message;
-		reader.parse(messageStr, message);
+		Json::Value jMessage;
+		reader.parse(message.content(), jMessage);
 
-		std::string cmd = message["cmd"].asString();
+		std::string cmd = jMessage["cmd"].asString();
 		if (cmd == "state") {
-			remoteReceiveGates_.clear();
-			Json::Value  const& jReceiveGates = message["receiveGates"];
-			for (::Json::ValueConstIterator iter = jReceiveGates.begin(); iter != jReceiveGates.end(); ++iter) {
-				RemoteReceiveGate remoteReceiveGate;
-				std::string name = iter.memberName();
-				remoteReceiveGates_.emplace(name, remoteReceiveGate);
+            remoteSubscriptions_.clear();
+			Json::Value const& jSubscriptions = jMessage["subscriptions"];
+			for (Json::Value const& jSubscription : jSubscriptions) {
+                std::string name = jSubscription["name"].asString();
+                remoteSubscriptions_.emplace_back(std::move(name), message.source());
 			}
 
-			remoteSendGates_.clear();
-			Json::Value  const& jSendGates = message["sendGates"];
-			for (::Json::ValueConstIterator iter = jSendGates.begin(); iter != jSendGates.end(); ++iter) {
-				RemoteSendGate remoteSendGate;
-				std::string name = iter.memberName();
-				remoteSendGates_.emplace(name, remoteSendGate);
+			remoteEmitters_.clear();
+			Json::Value const& jEmitters = jMessage["emitters"];
+			for (Json::Value const& jEmitter : jEmitters) {
+				std::string name = jEmitter["name"].asString();
+				remoteEmitters_.emplace_back(std::move(name), message.source());
 			}
 		}
 		else if (cmd == "message") {
-			std::string name = message["name"].asString();
-			auto found = receiveGates_.find(name);
-			if (found == receiveGates_.end()) {
+			std::string name = jMessage["name"].asString();
+			auto found = findSubscriptionUnsynced(name);
+			if (found == subscriptions_.end()) {
 				GATEY_LOG("received message without port");
 				return;
 			}
 
-			ReceiveGate& gate = found->second;
+			Subscription& subscription = *found;
 
-			JsonConstRef content = message["content"];
-			if (gate.receive_ != nullptr) {
-				callbacks_.push_back(std::bind(gate.receive_, content));
+            //RETARDED
+			JsonConstRef content = jMessage["content"];
+			if (subscription.receive_ != nullptr) {
+				callbacks_.push_back(std::bind(subscription.receive_, content));
 				//gate.receive_(content);
 			}
 
@@ -129,9 +133,9 @@ namespace gatey {
 			}
 
             //TODO: Not thread safe, DONE
-            std::deque<std::string> messageStrs = webSocket_->receive();
-			for (std::string const& messageStr : messageStrs) {
-				handleMessageUnsynced(messageStr);
+            std::deque<InMessage> messages = webSocket_->receive();
+			for (InMessage const& message : messages) {
+				handleMessageUnsynced(message);
 			}
 		}
 
@@ -142,92 +146,100 @@ namespace gatey {
 	}
 
 
-	void GateY::openReceiveGate(std::string const& name, std::function<void(JsonConstRef json)> receive) {
+	void GateY::subscribe(std::string const& name, std::function<void(JsonConstRef json)> receive) {
 		std::lock_guard<std::mutex> guard(mutex_);
 
-		auto found = receiveGates_.find(name);
-		if (found != receiveGates_.end()) {
+		auto found = findSubscriptionUnsynced(name);
+		if (found != subscriptions_.end()) {
 			//Gate with this name already exists just changing callback
-			ReceiveGate& gate = found->second;
-			gate.receive_ = receive;
+			Subscription& subscription = *found;
+			subscription.receive_ = receive;
 			return;
 		}
 
-		ReceiveGate gate(receive);
-		receiveGates_.emplace(name, gate);
+		//Subscription subscription(receive);
+		subscriptions_.emplace_back(std::move(name), std::move(receive));
 		stateModified_ = true;
 	}
 
-	void GateY::openSendGate(std::string const& name) {
+	void GateY::openEmitter(std::string const& name) {
 		std::lock_guard<std::mutex> guard(mutex_);
 
-		auto found = sendGates_.find(name);
-		if (found != sendGates_.end()) {
+		auto found = findEmitterUnsynced(name);
+		if (found != emitters_.end()) {
 			//Gate with this name already exists just changing callback
 			return;
 		}
 
-		SendGate gate;
-		sendGates_.emplace(name, gate);
+		emitters_.emplace_back(name);
 		stateModified_ = true;
 	}
 
-	void GateY::sendUnsynced(JsonConstRef json) {
+	void GateY::sendUnsynced(std::set<SessionId> sessions, JsonConstRef json) {
 		Json::FastWriter jsonWriter;
-		std::string messageStr = jsonWriter.write(json.json_);
-		webSocket_->send(messageStr);
+		std::string content = jsonWriter.write(json.json_);
+        OutMessage outMessage(std::move(sessions), std::move(content));
+		webSocket_->emit(std::move(outMessage));
 	}
+    
+    void GateY::broadcastUnsynced(JsonConstRef json) {
+        std::set<SessionId> allSessions = webSocket_->sessions();
+        sendUnsynced(allSessions, json);
+    }
 
-	void GateY::send(std::string const& name, JsonConstRef content) {
-		auto foundLocalGate = sendGates_.find(name);
-		if (foundLocalGate == sendGates_.end()) {
+    //Send 
+	void GateY::emit(std::string const& name, JsonConstRef content) {
+		auto foundEmitter = findEmitterUnsynced(name);
+		if (foundEmitter == emitters_.end()) {
 			GATEY_LOG("can't send message, no local send gate open with name: " + name);
 			return;
 		}
 
-		auto foundRemoteGate = remoteReceiveGates_.find(name);
-		if (foundRemoteGate == remoteReceiveGates_.end()) {
+		auto foundRemoteSubscription = findRemoteSubscriptionUnsynced(name);
+		if (foundRemoteSubscription == remoteSubscriptions_.end()) {
 			GATEY_LOG("can't send message, no remote receive gate open with name: " + name);
 			return;
 		}
 
-		Json::Value  message;
+		Json::Value message;
 		message["cmd"] = "message";
 		message["name"] = name;
 		message["content"] = content.json_;
-		sendUnsynced(message);
+        
+        std::set<SessionId> sessions = collectRemoteSubscriptions(name);
+        sendUnsynced(sessions, message);
 	}
 
-	void GateY::closeReceiveGateUnsynced(std::string const& name) {
-		auto found = receiveGates_.find(name);
-		if (found == receiveGates_.end()) {
+	void GateY::unsubscribeUnsynced(std::string const& name) {
+		auto found = findSubscriptionUnsynced(name);
+		if (found == subscriptions_.end()) {
 			GATEY_LOG("no gate to delete with name: " + name);
 			return;
 		}
 
-		receiveGates_.erase(found);
+		subscriptions_.erase(found);
 		stateModified_ = true;
 	}
 
-	void GateY::closeSendGateUnsynced(std::string const& name) {
-		auto found = sendGates_.find(name);
-		if (found == sendGates_.end()) {
+	void GateY::closeEmitterUnsynced(std::string const& name) {
+		auto found = findEmitterUnsynced(name);
+		if (found == emitters_.end()) {
 			GATEY_LOG("no gate to close with name: " + name);
 			return;
 		}
 
-		sendGates_.erase(found);
+		emitters_.erase(found);
 		stateModified_ = true;
 	}
 
-	void GateY::closeReceiveGate(std::string const& name) {
+	void GateY::unsubscribe(std::string const& name) {
 		std::lock_guard<std::mutex> guard(mutex_);
-		closeReceiveGateUnsynced(name);
+		unsubscribeUnsynced(name);
 	}
 
-	void GateY::closeSendGate(std::string const& name) {
+	void GateY::closeEmitter(std::string const& name) {
 		std::lock_guard<std::mutex> guard(mutex_);
-		closeSendGateUnsynced(name);
+		closeEmitterUnsynced(name);
 	}
 
 	void GateY::start() {
@@ -249,5 +261,52 @@ namespace gatey {
 
 
 	}
+    
+    std::vector<Subscription>::iterator
+    GateY::findSubscriptionUnsynced(std::string const& name) {
+        return std::find_if(subscriptions_.begin(), subscriptions_.end(),
+                            [&name](Subscription const& subscription)
+        {
+            return subscription.name_ == name;
+        });
+    }
+    
+    std::vector<Emitter>::iterator
+    GateY::findEmitterUnsynced(std::string const& name) {
+        return std::find_if(emitters_.begin(), emitters_.end(),
+                            [&name](Emitter const& emitter)
+        {
+            return emitter.name_ == name;
+        });
+    }
+    
+    std::vector<RemoteEmitter>::iterator
+    GateY::findRemoteEmitterUnsynced(std::string const& name) {
+        return std::find_if(remoteEmitters_.begin(), remoteEmitters_.end(),
+                            [&name](RemoteEmitter const& remoteEmitter)
+        {
+            return remoteEmitter.name_ == name;
+        });
+    }
+    
+    std::vector<RemoteSubscription>::iterator
+    GateY::findRemoteSubscriptionUnsynced(std::string const& name) {
+        return std::find_if(remoteSubscriptions_.begin(), remoteSubscriptions_.end(),
+                            [&name](RemoteSubscription const& remoteSubscription)
+
+        {
+            return remoteSubscription.name_ == name;
+        });
+    }
+    
+    std::set<SessionId>
+    GateY::collectRemoteSubscriptions(std::string const& name) {
+        std::set<SessionId> sessions;
+        for(RemoteSubscription const& remoteSubscription : remoteSubscriptions_) {
+            if(remoteSubscription.name_ == name)
+                sessions.insert(remoteSubscription.sessionId_);
+        }
+        return sessions;
+    }
 
 }

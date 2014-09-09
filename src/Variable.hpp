@@ -33,12 +33,12 @@ namespace gatey {
             name_(std::move(name)),
 			gateY_(gateY)
 		{
-			gateY_->openSendGate(name_);
+			gateY_->openEmitter(name_);
 		}
 
 		//! Closes the send gate with the given name
 		~WriteVariable() {
-			gateY_->closeSendGate(name_);		
+			gateY_->closeEmitter(name_);
 		}
 
 		//! Set the value of this variable, the value is serialized to json using the gatey::serialize function
@@ -47,7 +47,7 @@ namespace gatey {
 		void set(T const& value) {
             JsonHolder json;
 			serialize(value, *json);
-			gateY_->send(name_, *json);
+			gateY_->emit(name_, *json);
 		}
 	};
 
@@ -77,7 +77,7 @@ namespace gatey {
 			content_(std::move(content)),
 			gateY_(gateY)
 		{
-			gateY_->openReceiveGate(name_, [this](JsonConstRef jMessage) {
+			gateY_->subscribe(name_, [this](JsonConstRef jMessage) {
 				std::lock_guard<std::recursive_mutex> guard(mutex_);
 				deserialize(jMessage, content_);
 				if (onChange != nullptr)
@@ -87,7 +87,7 @@ namespace gatey {
 
 		//! Closes the receive gate with the given name
 		~ReadVariable() {
-			gateY_->closeReceiveGate(name_);
+			gateY_->unsubscribe(name_);
 		}
 
 		//! Returns the current value, locks while the variable is being updated

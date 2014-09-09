@@ -24,6 +24,14 @@ namespace gatey {
     struct JsonConstRef;
     struct GateY;
     
+    struct WriteArchive {
+        Json::Value const& json;
+    };
+    
+    struct ReadArchive {
+        Json::Value const& json;
+    };
+    
     struct JsonRef {
     private:
         Json::Value& json_;

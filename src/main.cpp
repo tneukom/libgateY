@@ -12,7 +12,7 @@ TODO:
 */
 
 int main() {
-	std::chrono::milliseconds dura(20);
+	std::chrono::milliseconds dura(100);
 	gatey::global = std::make_shared<gatey::GateY>();
 
 

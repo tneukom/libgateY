@@ -19,26 +19,53 @@ struct libwebsocket;
 
 namespace gatey {
     
-    typedef long long SessionId;
+    typedef unsigned long long SessionId;
     
-    struct Message {
-        std::string content;
-        SessionId sessionId;
+    struct WebSocketQueue;
+    
+    struct OutMessage {
+    private:
+        std::string content_;
+        std::set<SessionId> destionations_; // only defined if Destination == Session
         
-        Message() : sessionId(-1) {
+        std::vector<char> buffer_;
+        std::size_t len_;
+        
+    public:
+        
+        OutMessage() = default;
+        OutMessage(std::set<SessionId> destinations, std::string content);
+        
+        OutMessage(OutMessage const& other) = delete;
+        OutMessage(OutMessage&& other) = default;
+        
+        OutMessage& operator=(OutMessage const& other) = delete;
+        OutMessage& operator=(OutMessage&& other) = default;
+        
+        void removeDestination(SessionId sessionId);
+        
+        friend class WebSocketQueue;
+    };
+    
+    struct InMessage {
+    private:
+        SessionId source_;
+        std::string content_;
+        
+    public:
+        
+        std::string const& content() const {
+            return content_;
         }
         
-        Message(SessionId sessionId, std::string content) :
-            sessionId(sessionId),
-            content(std::move(content))
-        {
+        SessionId source() const {
+            return source_;
         }
         
-        Message(Message const& other) = delete;
-        Message(Message&& other) = default;
+        InMessage();
+        InMessage(SessionId source, char const* bytes, std::size_t len);
         
-        Message& operator=(Message const& other) = delete;
-        Message& operator=(Message&& other) = default;
+        friend class WebSocketQueue;
     };
 
     //! So we don't have to include the libwebsockets header
@@ -61,28 +88,34 @@ namespace gatey {
 
         //! Incoming messages, std::string has a nothrow move constructor, therefore
         //! resize should not be a problem
-        std::deque<Message> inMessages_;
+        std::deque<InMessage> inMessages_;
 
         //! Outgoing messages
-        std::deque<Message> outMessages_;
+        std::deque<OutMessage> outMessages_;
+        
+        std::deque<OutMessage>::iterator firstMessageWithDestination(SessionId sessionId);
 
 	public:
+        
+        std::set<SessionId> sessions() const;
+        
+        //TODO: Make private somehow
+        static int callback(libwebsocket_context *context, libwebsocket *wsi,
+                            LibWebsocketsCallbackReasonBoxed const& reasonBoxed,
+                            void *user, void *in, size_t len);
+        
 		//! send, empty, receive can be called from different threads use work only in the one thread
 		//! Put message on queue to send
-		void send(Message message);
+		void emit(OutMessage message);
 
         //! returns a list of new messages
-        std::deque<Message> receive();
+        std::deque<InMessage> receive();
 
         //! call this to do the actual work: send and receiving messages handling network stuff ...
 		void work();
 
 		WebSocketQueue();
 		~WebSocketQueue();
-
-        friend int callback(struct libwebsocket_context *context, libwebsocket *wsi,
-                            LibWebsocketsCallbackReasonBoxed const& reasonBoxed,
-                            void *user, void *in, size_t len);
 	};
 
 }
