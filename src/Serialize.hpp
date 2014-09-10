@@ -6,254 +6,204 @@
 #ifndef GATEY_SERIALIZE_H
 #define GATEY_SERIALIZE_H
 
+#ifndef GATEY_IS_AMALGAMATION
+#include "json.hpp"
+#endif
+
+
 #include <functional>
 #include <vector>
 #include <array>
 #include <map>
 #include <memory>
 #include <tuple>
-#include <utility> 
-
-namespace Json {
-	class Value;
-}
+#include <utility>
 
 namespace gatey {
     
-    struct JsonHolder;
-    struct JsonConstRef;
-    struct GateY;
+    namespace serialize {
+        struct Info {
+            Info() {
+            }
+        };
+    }
     
-    struct WriteArchive {
-        Json::Value const& json;
-    };
+    template<typename T>
+    void read(Json::Value const& jValue, T& value) {
+        serialize::Info info;
+        read(jValue, value, info);
+    }
     
-    struct ReadArchive {
-        Json::Value const& json;
-    };
+    template<typename T>
+    void write(T const& value, Json::Value& jValue) {
+        serialize::Info info;
+        write(value, jValue, info);
+    }
     
-    struct JsonRef {
-    private:
-        Json::Value& json_;
-        
-        JsonRef(Json::Value& json);
-        
-    public:
-        
-        //! turns the json value into a json list
-		void list();
-        
-        //! turns the json value into a json object
-		void object();
-        
-        //! appends a new json value to jsonList and returns a reference to it
-		JsonRef append();
-        
-        //! return a reference to the json value with the given key in jsonObject, if
-        //! the key doesn't exist it is created
-		JsonRef key(std::string const& key);
-        
-        friend struct JsonHolder;
-        friend struct JsonConstRef;
-        friend struct GateY;
-        
-        friend void serialize(int value, JsonRef json);
-        friend void serialize(float value, JsonRef json);
-        friend void serialize(double value, JsonRef json);
-        friend void serialize(char value, JsonRef json);
-        friend void serialize(std::string const& str, JsonRef json);
-    };
 
     
-    struct JsonConstRef {
-    private:
-        Json::Value const& json_;
+    
+    namespace serialize {
+
+
         
-        JsonConstRef(Json::Value const& json);
+        //! serialize int
+        void write(int value, Json::Value& jValue, Info const& info);
         
-    public:
+        //! deserialize int
+        void read(Json::Value const& jValue, int& value, Info const& info);
         
-        JsonConstRef(JsonRef other) : json_(other.json_) {
+        //! serialize float
+        void write(float value, Json::Value& jValue, Info const& info);
+        
+        //! deserialize float
+        void read(Json::Value const& jValue, float& value, Info const& info);
+        
+        //! serialize and deserialize double
+        void write(double value, Json::Value& jValue, Info const& info);
+        
+        // read double from json
+        void read(Json::Value const& jValue, double& value, Info const& info);
+        
+        //! serialize and deserialize char
+        void write(char value, Json::Value& jValue, Info const& info);
+        
+        //! read char from json
+        void read(Json::Value const& jValue, char& value, Info const& info);
+        
+        //! serialize and deserialize std::string
+        void write(std::string const& value, Json::Value& jValue, Info const& info);
+        
+        //! read string from json
+        void read(Json::Value const& jValue, std::string& value, Info const& info);
+        
+        //! serialize std::vector<T> of any type T that can be serialized
+        template<typename T>
+        void write(std::vector<T> const& items, Json::Value& jItems, Info const& info) {
+            jItems = Json::Value(Json::arrayValue);
+            for (T const& item : items) {
+                write(item, jItems.append(Json::Value()), info);
+            }
         }
         
-        //! returns the json value at index i
-		JsonConstRef at(std::size_t i) const;
+        //! deserialize std::vector<T> of any type T that can be serialized
+        template<typename T>
+        void read(Json::Value const& jItems, std::vector<T>& items, Info const& info) {
+            for(Json::Value const& jItem : jItems) {
+                T item;
+                read(jItem, item, info);
+                items.push_back(item);
+            }
+        }
         
-        //! returns the json value with the given key
-        //! TODO: Make sure key is not created
-		JsonConstRef at(std::string const& key) const;
+        //! serialize std::aray<T, SIZE> of any type T that can be serialized
+        template<typename T, std::size_t SIZE>
+        void write(std::array<T, SIZE> const& items, Json::Value& jItems, Info const& info) {
+            jItems = Json::Value(Json::arrayValue);
+            for (T const& item : items) {
+                write(item, jItems.append(Json::Value()), info);
+            }
+        }
         
-        //! applies f to each element in the json list
-        void forEach(std::function<void(JsonConstRef)> f);
+        //! deserialize std::aray<T, SIZE> of any type T that can be serialized
+        template<typename T, std::size_t SIZE>
+        void read(Json::Value const& jItems, std::array<T, SIZE>& items, Info const& info) {
+            for (std::size_t i = 0; i < SIZE; ++i) {
+                Json::Value const& jItem = jItems[(Json::Value::ArrayIndex)i];
+                read(jItem, items[i], info);
+            }
+        }
         
-        //! applies f to each key and value in the json object
-        void forEach(std::function<void(std::string const&, JsonConstRef)> f);
+        //! serialize std::map<std::string, T> of any type T that can be serialized
+        template<typename T>
+        void write(std::map<std::string, T> const& map, Json::Value& jMap, Info const& info) {
+            jMap = Json::Value(Json::objectValue);
+            for (auto const& pair : map) {
+                std::string const& key = pair.first();
+                T const& value = pair.second();
+                write(value, jMap[key], info);
+            }
+        }
         
-        friend struct GateY;
+        //! deserialize std::map<std::string, T> of any type T that can be serialized
+        template<typename T>
+        void read(Json::Value const& jMap, std::map<std::string, T>& map, Info const& info) {
+            for(auto iter = jMap.begin(); iter != jMap.end(); ++iter) {
+                T value;
+                read(*iter, value, info);
+                map.emplace(iter.memberName(), value);
+            }
+        }
         
-        friend void deserialize(JsonConstRef json, int& value);
-        friend void deserialize(JsonConstRef json, float& value);
-        friend void deserialize(JsonConstRef json, double& value);
-        friend void deserialize(JsonConstRef json, char& value);
-        friend void deserialize(JsonConstRef json, std::string& value);
-    };
+        //! serialize std::unique_ptr<T> of any type T that can be serialized
+        template<typename T>
+        void write(std::unique_ptr<T> const& ptr, Json::Value& jPtr, Info const& info) {
+            write(*ptr, jPtr, info);
+        }
+        
+        //! deserialize std::unique_ptr<T> of any type T that can be serialized
+        template<typename T>
+        void read(Json::Value const& jPtr, std::unique_ptr<T>& ptr, Info const& info) {
+            //TODO: new?
+            ptr.reset(new T);
+            read(jPtr, *ptr, info);
+        }
+        
+        //! serialize and deserialize std::shared_ptr<T> of any type T that can be serialized
+        template<typename T>
+        void write(std::shared_ptr<T> const& ptr, Json::Value& jPtr, Info const& info) {
+            write(*ptr, jPtr, info);
+        }
+        
+        template<typename T>
+        void read(Json::Value const& jPtr, std::shared_ptr<T>& ptr, Info const& info) {
+            ptr.reset(new T);
+            read(jPtr, *ptr, info);
+        }
+        
+        //std::tuple
+        template<std::size_t I, std::size_t SIZE, typename TUPLE>
+        struct SerializeTupleElements {
+            static void writeTuple(TUPLE const& tuple, Json::Value& jTuple, Info const& info) {
+                auto const& item = std::get<I>(tuple);
+                write(item, jTuple.append(Json::Value()), info);
+                SerializeTupleElements<I + 1, SIZE, TUPLE>::writeTuple(tuple, jTuple, info);
+            }
+            
+            static void readTuple(Json::Value const& jTuple, TUPLE& tuple, Info const& info) {
+                auto& item = std::get<I>(tuple);
+                Json::Value const& jItem = jTuple[(Json::Value::ArrayIndex)I];
+                read(jItem, item, info);
+                SerializeTupleElements<I + 1, SIZE, TUPLE>::deserializeTuple(jTuple, tuple, info);
+            }
+        };
+        
+        template<std::size_t SIZE, typename TUPLE>
+        struct SerializeTupleElements<SIZE, SIZE, TUPLE> {
+            static void writeTuple(TUPLE const& tuple, Json::Value& jTuple, Info const& info) {
+            }
+            
+            static void deserializeTuple(Json::Value const& jTuple, TUPLE& tuple, Info const& info) {
+            }
+        };
+        
+        template<typename... ARGS>
+        void write(std::tuple<ARGS...> const& tuple, Json::Value& jTuple, Info const& info) {
+            SerializeTupleElements<0, sizeof...(ARGS), std::tuple<ARGS...>>::writeTuple(tuple, jTuple, info);
+        }
+        
+        template<typename... ARGS>
+        void read(Json::Value const& jTuple, std::tuple<ARGS...>& tuple, Info const& info) {
+            SerializeTupleElements<0, sizeof...(ARGS), std::tuple<ARGS...>>::readTuple(jTuple, tuple, info);
+        }
+        
+        //void write(T const&, WriteArchive);
+        //void read(ReadArchive, T&);
+    }
     
 
     
-    struct JsonHolder {
-    private:
-        std::unique_ptr<Json::Value> holder_;
-        
-    public:
-        JsonHolder();
-        ~JsonHolder();
-        
-        JsonRef operator*();
-    };
 
-    //! serialize int
-	void serialize(int value, JsonRef json);
-
-    //! deserialize int
-	void deserialize(JsonConstRef json, int& value);
-
-    //! serialize float
-    void serialize(float value, JsonRef json);
-
-    //! deserialize float
-	void deserialize(JsonConstRef json, float& value);
-
-    //! serialize and deserialize double
-	void serialize(double value, JsonRef json);
-	void deserialize(JsonConstRef json, double& value);
-
-    //! serialize and deserialize char
-	void serialize(char value, JsonRef json);
-	void deserialize(JsonConstRef json, char& value);
-
-    //! serialize and deserialize std::string
-	void serialize(std::string const& str, JsonRef json);
-	void deserialize(JsonConstRef json, std::string& value);
-
-    //! serialize std::vector<T> of any type T that can be serialized
-	template<typename T>
-	void serialize(std::vector<T> const& items, JsonRef json) {
-		json.list();
-		for (T const& item : items) {
-			serialize(item, json.append());
-		}
-	}
-
-    //! deserialize std::vector<T> of any type T that can be serialized
-	template<typename T>
-	void deserialize(JsonConstRef json, std::vector<T>& items) {
-        json.forEach([&items](JsonConstRef jsonItem) {
-			T item;
-			deserialize(jsonItem, item);
-			items.push_back(item);
-		});
-	}
-
-    //! serialize std::aray<T, SIZE> of any type T that can be serialized
-	template<typename T, std::size_t SIZE>
-	void serialize(std::array<T, SIZE> const& items, JsonRef json) {
-        json.list();
-		for (T const& item : items) {
-			serialize(item, json.append());
-		}
-	}
-
-    //! deserialize std::aray<T, SIZE> of any type T that can be serialized
-	template<typename T, std::size_t SIZE>
-	void deserialize(JsonConstRef json, std::array<T, SIZE>& items) {
-		for (std::size_t i = 0; i < SIZE; ++i) {
-            JsonConstRef jsonItem = json.at(i);
-			deserialize(jsonItem, items[i]);
-		}
-	}
-
-    //! serialize std::map<std::string, T> of any type T that can be serialized
-	template<typename T>
-	void serialize(std::map<std::string, T> const& map, JsonRef json) {
-		json.object();
-		for (auto const& pair : map) {
-            std::string const& key = pair.first();
-            T const& value = pair.second();
-			serialize(value, json.key(key));
-		}
-	}
-
-    //! deserialize std::map<std::string, T> of any type T that can be serialized
-	template<typename T>
-	void deserialize(JsonConstRef json, std::map<std::string, T>& map) {
-        json.forEach([&map](std::string const& key, JsonConstRef jsonValue) {
-			T value;
-            deserialize(jsonValue, value);
-			map.emplace(key, value);
-		});
-	}
-
-    //! serialize std::unique_ptr<T> of any type T that can be serialized
-	template<typename T>
-	void serialize(std::unique_ptr<T> const& ptr, JsonRef json) {
-		serialize(*ptr, json);
-	}
-
-    //! deserialize std::unique_ptr<T> of any type T that can be serialized
-	template<typename T>
-	void deserialize(JsonConstRef json, std::unique_ptr<T>& ptr) {
-		*ptr = T();
-		deserialize(json, *ptr);
-	}
-
-    //! serialize and deserialize std::shared_ptr<T> of any type T that can be serialized
-	template<typename T>
-	void serialize(std::shared_ptr<T> const& ptr, JsonRef json) {
-		serialize(*ptr, json);
-	}
-
-	template<typename T>
-	void deserialize(JsonConstRef json, std::shared_ptr<T>& ptr) {
-		*ptr = T();
-		deserialize(json, *ptr);
-	}
-
-	//std::tuple
-	template<std::size_t I, std::size_t SIZE, typename TUPLE>
-	struct SerializeTupleElements {
-		static void serializeTuple(TUPLE const& tuple, JsonRef jTuple) {
-			auto const& item = std::get<I>(tuple);
-			JsonRef jItem = jTuple.append();
-			serialize(item, jItem);
-			SerializeTupleElements<I + 1, SIZE, TUPLE>::serializeTuple(tuple, jTuple);
-		}
-
-		static void deserializeTuple(JsonConstRef jTuple, TUPLE& tuple) {
-			auto& item = std::get<I>(tuple);
-			JsonConstRef jItem = jTuple.at(I);
-            deserialize(jItem, item);
-			SerializeTupleElements<I + 1, SIZE, TUPLE>::deserializeTuple(jTuple, tuple);
-		}
-	};
-
-	template<std::size_t SIZE, typename TUPLE>
-    struct SerializeTupleElements<SIZE, SIZE, TUPLE> {
-		static void serializeTuple(TUPLE const& tuple, JsonRef jTuple) {
-		}
-
-		static void deserializeTuple(JsonConstRef jTuple, TUPLE& tuple) {
-		}
-	};
-
-    template<typename... ARGS>
-	void serialize(std::tuple<ARGS...> const& tuple, JsonRef json) {
-		SerializeTupleElements<0, sizeof...(ARGS), std::tuple<ARGS...>>::serializeTuple(tuple, json);
-	}
-
-	template<typename... ARGS>
-	void deserialize(JsonConstRef json, std::tuple<ARGS...>& tuple) {
-		SerializeTupleElements<0, sizeof...(ARGS), std::tuple<ARGS...>>::deserializeTuple(json, tuple);
-	}
 }
 
 #endif

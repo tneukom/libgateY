@@ -13,10 +13,13 @@
 
 #include <algorithm>
 #include <iostream>
+#include <functional>
 
 namespace gatey {
 
 	std::shared_ptr<GateY> global;
+
+
 
 	GateY::GateY() :
 		stateModified_(false)
@@ -71,14 +74,19 @@ namespace gatey {
 
 		std::string cmd = jMessage["cmd"].asString();
 		if (cmd == "state") {
-            remoteSubscriptions_.clear();
+//            auto f = has(&Emitter::name, std::string("str"));
+//            auto f = std::bind(RemoteSubscription::hasSessionId, id);
+
+            
+            eraseRemoteSubscriptionsUnsynced(message.source());
 			Json::Value const& jSubscriptions = jMessage["subscriptions"];
 			for (Json::Value const& jSubscription : jSubscriptions) {
                 std::string name = jSubscription["name"].asString();
                 remoteSubscriptions_.emplace_back(std::move(name), message.source());
 			}
 
-			remoteEmitters_.clear();
+			
+            eraseRemoteEmitters(message.source());
 			Json::Value const& jEmitters = jMessage["emitters"];
 			for (Json::Value const& jEmitter : jEmitters) {
 				std::string name = jEmitter["name"].asString();
@@ -96,9 +104,11 @@ namespace gatey {
 			Subscription& subscription = *found;
 
             //RETARDED
-			JsonConstRef content = jMessage["content"];
+            Json::Value const& jValue = jMessage["content"];
 			if (subscription.receive_ != nullptr) {
-				callbacks_.push_back(std::bind(subscription.receive_, content));
+                //TODO: Copies jValue, create callback class and use move constructor (swap because JsonCpp doesn't
+                //support move semantics
+				callbacks_.push_back(std::bind(subscription.receive_, jValue));
 				//gate.receive_(content);
 			}
 
@@ -146,7 +156,7 @@ namespace gatey {
 	}
 
 
-	void GateY::subscribe(std::string const& name, std::function<void(JsonConstRef json)> receive) {
+	void GateY::subscribe(std::string const& name, std::function<void(Json::Value const& jValue)> receive) {
 		std::lock_guard<std::mutex> guard(mutex_);
 
 		auto found = findSubscriptionUnsynced(name);
@@ -175,20 +185,20 @@ namespace gatey {
 		stateModified_ = true;
 	}
 
-	void GateY::sendUnsynced(std::set<SessionId> sessions, JsonConstRef json) {
+	void GateY::sendUnsynced(std::set<SessionId> sessions, Json::Value const& jValue) {
 		Json::FastWriter jsonWriter;
-		std::string content = jsonWriter.write(json.json_);
+		std::string content = jsonWriter.write(jValue);
         OutMessage outMessage(std::move(sessions), std::move(content));
 		webSocket_->emit(std::move(outMessage));
 	}
     
-    void GateY::broadcastUnsynced(JsonConstRef json) {
+    void GateY::broadcastUnsynced(Json::Value const& json) {
         std::set<SessionId> allSessions = webSocket_->sessions();
         sendUnsynced(allSessions, json);
     }
 
     //Send 
-	void GateY::emit(std::string const& name, JsonConstRef content) {
+	void GateY::emit(std::string const& name, Json::Value const& jValue) {
 		auto foundEmitter = findEmitterUnsynced(name);
 		if (foundEmitter == emitters_.end()) {
 			GATEY_LOG("can't send message, no local send gate open with name: " + name);
@@ -204,9 +214,10 @@ namespace gatey {
 		Json::Value message;
 		message["cmd"] = "message";
 		message["name"] = name;
-		message["content"] = content.json_;
+		message["content"] = jValue;
         
         std::set<SessionId> sessions = collectRemoteSubscriptions(name);
+        std::vector<SessionId> deb(sessions.begin(), sessions.end());
         sendUnsynced(sessions, message);
 	}
 
@@ -266,37 +277,36 @@ namespace gatey {
     GateY::findSubscriptionUnsynced(std::string const& name) {
         return std::find_if(subscriptions_.begin(), subscriptions_.end(),
                             [&name](Subscription const& subscription)
-        {
-            return subscription.name_ == name;
-        });
+                            {
+                                return subscription.name_ == name;
+                            });
     }
     
     std::vector<Emitter>::iterator
     GateY::findEmitterUnsynced(std::string const& name) {
         return std::find_if(emitters_.begin(), emitters_.end(),
                             [&name](Emitter const& emitter)
-        {
-            return emitter.name_ == name;
-        });
+                            {
+                                return emitter.name_ == name;
+                            });
     }
     
     std::vector<RemoteEmitter>::iterator
     GateY::findRemoteEmitterUnsynced(std::string const& name) {
         return std::find_if(remoteEmitters_.begin(), remoteEmitters_.end(),
                             [&name](RemoteEmitter const& remoteEmitter)
-        {
-            return remoteEmitter.name_ == name;
-        });
+                            {
+                                return remoteEmitter.name_ == name;
+                            });
     }
     
     std::vector<RemoteSubscription>::iterator
     GateY::findRemoteSubscriptionUnsynced(std::string const& name) {
         return std::find_if(remoteSubscriptions_.begin(), remoteSubscriptions_.end(),
                             [&name](RemoteSubscription const& remoteSubscription)
-
-        {
-            return remoteSubscription.name_ == name;
-        });
+                            {
+                                return remoteSubscription.name_ == name;
+                            });
     }
     
     std::set<SessionId>
@@ -307,6 +317,24 @@ namespace gatey {
                 sessions.insert(remoteSubscription.sessionId_);
         }
         return sessions;
+    }
+    
+    void GateY::eraseRemoteSubscriptionsUnsynced(SessionId sessionId) {
+        auto newEnd = std::remove_if(remoteSubscriptions_.begin(), remoteSubscriptions_.end(),
+                                     [sessionId](RemoteSubscription const& elem)
+                                     {
+                                         return elem.sessionId_ == sessionId;
+                                     });
+        remoteSubscriptions_.erase(newEnd, remoteSubscriptions_.end());
+    }
+    
+    void GateY::eraseRemoteEmitters(SessionId sessionId) {
+        auto newEnd = std::remove_if(remoteEmitters_.begin(), remoteEmitters_.end(),
+                                     [sessionId](RemoteEmitter const& elem)
+                                     {
+                                         return elem.sessionId_ == sessionId;
+                                     });
+        remoteEmitters_.erase(newEnd, remoteEmitters_.end());
     }
 
 }

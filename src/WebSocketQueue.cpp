@@ -89,7 +89,7 @@ namespace gatey {
 		// reason for callback
 		switch (reason) {
 		case LWS_CALLBACK_FILTER_NETWORK_CONNECTION: {
-			if (self->sessions_.size() > 0) {
+			if (self->sessions_.size() >= self->maxSessionCount_) {
 				GATEY_LOG("not accepting connection because already connected");
 				return -1;
 			}
@@ -99,7 +99,7 @@ namespace gatey {
 			*perSession = { self->nextUniqueSessionId_ };
 			self->nextUniqueSessionId_++;
 			self->sessions_.insert(perSession->sessionId);
-			if (self->sessions_.size() > 1) {
+			if (self->sessions_.size() > self->maxSessionCount_) {
 				GATEY_LOG("connection established but will be canceled" + std::to_string(perSession->sessionId));
 				return -1;
 			}
@@ -156,7 +156,8 @@ namespace gatey {
 
 	WebSocketQueue::WebSocketQueue() :
 		messageSent_(false),
-		nextUniqueSessionId_(0)
+		nextUniqueSessionId_(0),
+        maxSessionCount_(10)
 	{
 
 

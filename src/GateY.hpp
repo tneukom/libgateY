@@ -22,6 +22,27 @@
 namespace gatey {
 
     struct WebSocketQueue;
+    
+//    template< class F, class... Args>
+//    with(T_MEMBER_FUNCTION f, Args&& a) {
+//        return [](T const& value) {
+//            return (value.*f)(
+//        }
+//    }
+    
+    //TODO: Write function that takes member function without argument and a value comparable with return type
+    //and returns a functor that takes obj and tests of property is equal to arg
+//    template <class T_RETURN, class T, class T_ARG>
+//    auto has(T_RETURN T::* memberProperty, T_ARG&& arg)
+//    -> decltype([memberProperty, arg](T const& value) {
+//        return (value.*memberProperty)() == arg;
+//    })
+//    {
+//        return [memberProperty, arg](T const& value) {
+//            return (value.*memberProperty)() == arg;
+//        };
+//    }
+    
 
     //! internal
 	struct Emitter {
@@ -33,17 +54,21 @@ namespace gatey {
             name_(std::move(name))
         {
         }
+        
+        std::string const& name() const {
+            return name_;
+        }
 	};
 
     //! internal
 	struct Subscription {
         std::string name_;
         // std::string identifier_; maybe in the future
-		std::function<void(JsonConstRef json)> receive_;
+		std::function<void(Json::Value const& jValue)> receive_;
         
         Subscription() = default;
         
-        Subscription(std::string name, std::function<void(JsonConstRef json)> receive) :
+        Subscription(std::string name, std::function<void(Json::Value const& jValue)> receive) :
             name_(std::move(name)),
             receive_(std::move(receive))
         {
@@ -77,9 +102,7 @@ namespace gatey {
         {
         }
 	};
-
-
-
+    
     //! open and close gates, which come in two forms: receive gates and send gates
     //! messages can be sent over send gates and a receive gate on the remote side will
     //! process them.
@@ -118,10 +141,10 @@ namespace gatey {
 		std::vector<std::function<void()>> callbacks_;
 
         //! Send a json package to remote
-		void sendUnsynced(std::set<SessionId> sessions, JsonConstRef json);
+		void sendUnsynced(std::set<SessionId> sessions, Json::Value const& jValue);
         
         //! Send a json package to all remotes
-        void broadcastUnsynced(JsonConstRef json);
+        void broadcastUnsynced(Json::Value const& jValue);
 
         //! Send a list of open send and receive gates to remote
 		void sendStateUnsynced();
@@ -157,6 +180,10 @@ namespace gatey {
         std::vector<RemoteSubscription>::iterator findRemoteSubscriptionUnsynced(std::string const& name);
         
         std::set<SessionId> collectRemoteSubscriptions(std::string const& name);
+        
+        void eraseRemoteSubscriptionsUnsynced(SessionId sessionId);
+        
+        void eraseRemoteEmitters(SessionId sessionId);
 
 	public:
         
@@ -167,13 +194,13 @@ namespace gatey {
 		~GateY();
         
         // Subscribe to receive all messages with the given name
-        void subscribe(std::string const& name, std::function<void(JsonConstRef json)> receive);
+        void subscribe(std::string const& name, std::function<void(Json::Value const& jValue)> receive);
         
         // Unsubscribe from receiving messages with the given name
         void unsubscribe(std::string const& name);
         
         // Send a message with the given name
-        void emit(std::string const& name, JsonConstRef json);
+        void emit(std::string const& name, Json::Value const& jValue);
         
         // Announce the sending of message with the given name
         void openEmitter(std::string const& name);

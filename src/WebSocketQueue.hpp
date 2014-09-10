@@ -76,6 +76,8 @@ namespace gatey {
 	private:
 		bool messageSent_;
 		SessionId nextUniqueSessionId_;
+        
+        unsigned int maxSessionCount_;
 
         //! List of unique session ids, at the moment only one session at a time is possible
 		std::set<SessionId> sessions_;

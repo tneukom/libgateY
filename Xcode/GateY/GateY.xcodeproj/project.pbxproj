@@ -31,7 +31,7 @@
 /* Begin PBXFileReference section */
 		17140CC419BC592700392C1E /* GateY */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GateY; sourceTree = BUILT_PRODUCTS_DIR; };
 		17140CD019BC594C00392C1E /* GateY.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GateY.cpp; path = ../../src/GateY.cpp; sourceTree = "<group>"; };
-		17140CD119BC594C00392C1E /* GateY.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = GateY.hpp; path = ../../src/GateY.hpp; sourceTree = "<group>"; };
+		17140CD119BC594C00392C1E /* GateY.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = GateY.hpp; path = ../../src/GateY.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		17140CD219BC594C00392C1E /* json.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = json.cpp; path = ../../src/json.cpp; sourceTree = "<group>"; };
 		17140CD319BC594C00392C1E /* json.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = json.hpp; path = ../../src/json.hpp; sourceTree = "<group>"; };
 		17140CD419BC594C00392C1E /* libwebsockets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = libwebsockets.cpp; path = ../../src/libwebsockets.cpp; sourceTree = "<group>"; };
@@ -39,8 +39,8 @@
 		17140CD619BC594C00392C1E /* Log.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Log.cpp; path = ../../src/Log.cpp; sourceTree = "<group>"; };
 		17140CD719BC594C00392C1E /* Log.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Log.hpp; path = ../../src/Log.hpp; sourceTree = "<group>"; };
 		17140CD819BC594C00392C1E /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../src/main.cpp; sourceTree = "<group>"; };
-		17140CD919BC594C00392C1E /* Serialize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Serialize.cpp; path = ../../src/Serialize.cpp; sourceTree = "<group>"; };
-		17140CDA19BC594C00392C1E /* Serialize.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Serialize.hpp; path = ../../src/Serialize.hpp; sourceTree = "<group>"; };
+		17140CD919BC594C00392C1E /* Serialize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Serialize.cpp; path = ../../src/Serialize.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		17140CDA19BC594C00392C1E /* Serialize.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = Serialize.hpp; path = ../../src/Serialize.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		17140CDB19BC594C00392C1E /* Variable.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Variable.hpp; path = ../../src/Variable.hpp; sourceTree = "<group>"; };
 		17140CDC19BC594C00392C1E /* WebSocketQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebSocketQueue.cpp; path = ../../src/WebSocketQueue.cpp; sourceTree = "<group>"; };
 		17140CDD19BC594C00392C1E /* WebSocketQueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = WebSocketQueue.hpp; path = ../../src/WebSocketQueue.hpp; sourceTree = "<group>"; };
@@ -253,6 +253,7 @@
 				17140CCF19BC592700392C1E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
