@@ -138,19 +138,46 @@ save_file(cpp_result, 'src/libwebsockets.cpp')
 
 root = ''
 
-header = [
-    '// gatey amalgated header (http://jsoncpp.sourceforge.net/).',
-    '#ifndef GATEY_AMALGATED_H_INCLUDED',
-    '#define GATEY_AMALGATED_H_INCLUDED',
-    '#define GATEY_IS_AMALGAMATION',
+libwebsockets_note = [
+    '',
+    '/* libwebsockets code',
+    ' * Copyright (C) 2010-2013 Andy Green <andy@warmcat.com>',
+    ' * Distributed under lesser GPL with static linking exception',
+    ' */',
+    '',
+]
 
+gatey_note = [
     '',
     '/* gateY code',
     ' * Copyright(C) 2014 Tobias Neukom <tneukom@gmail.com>',
     ' * Distributed under MIT license',
     ' */',
     '',
+]
 
+jsoncpp_note = [
+    '',
+    '/* jsoncpp code',
+    ' * Copyright 2007-2010 Baptiste Lepilleur',
+    ' * Distributed under MIT license, or public domain if desired and',
+    ' */',
+    '',
+]
+
+header = [
+    '// gatey amalgated header (http://jsoncpp.sourceforge.net/).',
+    '#ifndef GATEY_AMALGATED_H_INCLUDED',
+    '#define GATEY_AMALGATED_H_INCLUDED',
+    '#define GATEY_IS_AMALGAMATION',
+
+    jsoncpp_note,
+
+    source('src/json.hpp'),
+
+    gatey_note,
+
+    source('src/WebSocketQueue.hpp'),
     source('src/Serialize.hpp'),
     source('src/GateY.hpp'),
     source('src/Variable.hpp'),
@@ -162,27 +189,22 @@ header = [
 header_result = combine(header)
 save_file(header_result, 'gatey.hpp')
 
+
+
 cpp = [
     '/*',
     ' * gatey amalgated source (http://jsoncpp.sourceforge.net/).',
     ' */',
     '',
 
-    '',
-    '/* gateY code',
-    ' * Copyright(C) 2014 Tobias Neukom <tneukom@gmail.com>',
-    ' * Distributed under MIT license',
-    ' */',
-    '',
+    libwebsockets_note,
+
+    source('src/libwebsockets.h'),
+
+    gatey_note,
 
     '#include "gatey.hpp"',
 
-    source('src/json.hpp'),
-
-    source('src/json.hpp'),
-    source('src/libwebsockets.h'),
-
-    source('src/WebSocketQueue.hpp'),
     source('src/Log.hpp'),
 
     source('src/GateY.cpp'),
@@ -190,21 +212,11 @@ cpp = [
     source('src/Serialize.cpp'),
     source('src/WebSocketQueue.cpp'),
 
-    '',
-    '/* jsoncpp code',
-    ' * Copyright 2007-2010 Baptiste Lepilleur',
-    ' * Distributed under MIT license, or public domain if desired and',
-    ' */',
-    '',
+    jsoncpp_note,
 
     source('src/json.cpp'),
 
-    '',
-    '/* libwebsockets code',
-    ' * Copyright (C) 2010-2013 Andy Green <andy@warmcat.com>',
-    ' * Distributed under lesser GPL with static linking exception',
-    ' */',
-    '',
+    libwebsockets_note,
 
     source('src/libwebsockets.cpp'),
 ]

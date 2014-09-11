@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+
+<h1 id="position"></h1>
+<canvas id="spaceship_trace" width="600" height="600"></canvas>
+<div id="slider_dt"></div>
+<div id="slider_c"></div>
+
+<link href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
+<script src="gateY.js"></script>
+<script>
+    "use strict";
+
+    var gPosition = new gatey.ReadVariable('position', 0);
+    var gVelocity = new gatey.ReadVariable('velocity', 0);
+
+    var canvas = document.getElementById('spaceship_trace');
+    var ctx = canvas.getContext('2d');
+
+
+
+    var lastPos = undefined;
+    gPosition.onChange = function(newPos) {
+        if(lastPos) {
+
+            console.log(lastPos, newPos);
+
+            ctx.beginPath();
+            ctx.moveTo(lastPos[0], lastPos[1])
+            ctx.lineTo(newPos[0], newPos[1]);
+            ctx.stroke();
+
+            $('#position').html(JSON.stringify(newPos));
+        }
+
+        lastPos = newPos;
+    };
+
+
+//    var gDt = new gatey.WriteVariable('dt');
+//    var gC = new gatey.WriteVariable('c');
+//
+//    function slideUpdate() {
+//        gC.set($("#slider_c").slider("value") / 100);
+//        gDt.set($("#slider_dt").slider("value") / 200)
+//    }
+//
+//    $(function() {
+//        $('#slider_dt').slider({
+//            min: 0, max: 100, value: 1,
+//            slide: slideUpdate,
+//            change: slideUpdate
+//        });
+//
+//        $('#slider_c').slider({
+//            min: 0, max: 100, value: 1,
+//            slide: slideUpdate,
+//            change: slideUpdate
+//        });
+//    });
+
+</script>
+
+</body>
