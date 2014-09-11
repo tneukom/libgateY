@@ -38,7 +38,7 @@ gatey.GateY = function() {
 
     this.websocket.onmessage = function (socketMessage) {
         var message = JSON.parse(socketMessage.data);
-        console.log("receiving: ", JSON.stringify(message));
+        //console.log("receiving: ", JSON.stringify(message));
 
         if(message.cmd == 'state') {
             self.remoteSubscriptions = message.subscriptions;
@@ -46,15 +46,9 @@ gatey.GateY = function() {
         } else if(message.cmd == 'message') {
             var found = gatey.firstWithProperties(self.subscriptions, { name: message.name });
 
-//            var found = self.findSubscription(message.name)
             if(found && found.value.onReceive) {
                 found.value.onReceive(message.content);
             }
-//            if(message.name in self.receiveGates) {
-//                var onReceive = self.receiveGates[message.name].onReceive;
-//                if(onReceive)
-//                    onReceive(message.content);
-//            }
         }
     };
 }
@@ -69,14 +63,6 @@ gatey.hasProperties = function(obj, properties) {
         if(obj[property] != properties[property]) {
             return false;
         }
-
-//        if(!obj.hasOwnProperty(property)) {
-//            return false;
-//        }
-//
-//        if(obj[property] != properties[property]) {
-//            return false;
-//        }
     }
 
     return true;
@@ -276,6 +262,6 @@ gatey.Recorder = function(variable) {
         if(self.onChange)
             self.onChange(self.value);
     }
-}
+};
 
 

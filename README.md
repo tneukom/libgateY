@@ -1,39 +1,11 @@
-#include <SDL2/SDL.h>
+libgateY
+========
 
-#include "../../gatey.hpp"
-#include <iostream>
+Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.
 
-//TODO: Fix framereate (is fixed by vsync, but dependent on system)
+Simple example:
 
-struct Vec2 {
-    float x, y;
-    
-    Vec2(float x, float y) : x(x), y(y) {}
-};
-
-Vec2 operator+(Vec2 const& l, Vec2 const& r) {
-    return Vec2 (l.x + r.x, l.y + r.y);
-}
-
-Vec2& operator+=(Vec2& l, Vec2 const& r) {
-    l = l + r;
-    return l;
-}
-
-Vec2 operator*(float l, Vec2 const& r) {
-    return Vec2(l * r.x, l * r.y);
-}
-
-namespace gatey { namespace serialize {
-    void write(Vec2 const& value, Json::Value& jValue, Info info) {
-        write(std::make_tuple(value.x, value.y), jValue, info);
-    }
-}}
-
-double time() {
-    return (double)SDL_GetPerformanceCounter() / (double)SDL_GetPerformanceFrequency();
-}
-
+```c++
 int main(int argc, const char * argv[])
 {
     gatey::global = std::make_shared<gatey::GateY>();
@@ -87,4 +59,57 @@ int main(int argc, const char * argv[])
     
     return 0;
 }
+```
 
+JavaScript
+
+```html
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<body>
+<link href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
+<script src="gateY.js"></script>
+<script>
+    "use strict";
+
+    var gDt, gC, gY;
+
+    function refresh() {
+        gC.set($("#slider_c").slider("value") / 100);
+        gDt.set($("#slider_dt").slider("value") / 1000)
+    }
+
+    $(function() {
+        $('#slider_dt').slider({
+            min: 0, max: 100, value: 1,
+            slide: refresh,
+            change: refresh
+        });
+
+        $('#slider_c').slider({
+            min: 0, max: 100, value: 1,
+            slide: refresh,
+            change: refresh
+        });
+    });
+
+    $(document).ready(function() {
+
+        gDt = new gatey.WriteVariable('dt');
+        gC = new gatey.WriteVariable('c');
+        gY = new gatey.ReadVariable('y', 0);
+
+        gY.onChange = function(xs) {
+            $('#y').html(JSON.stringify(xs));
+        };
+    });
+</script>
+<div id="slider_dt"></div>
+<div id="slider_c"></div>
+<h1 id="y"></h1>
+</body>
+</html>
+```
