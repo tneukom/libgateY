@@ -25,7 +25,7 @@ LibGateY tries to be as simple to deploy as possible, so it consists of only one
 Spaceship example
 -----------------
 
-
+##### C++
 ```c++
 gatey::global = std::make_shared<gatey::GateY>();
 
@@ -49,6 +49,7 @@ while (true) {
 }
 ```
 
+##### Javascript
 ```javascript
 var gPosition = new gatey.ReadVariable('position', 0);
 var gVelocity = new gatey.ReadVariable('velocity', 0);
