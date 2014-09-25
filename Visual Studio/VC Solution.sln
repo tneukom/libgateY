@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExampleHeat", "ExampleHeat\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libwebsockets", "libwebsockets\libwebsockets.vcxproj", "{89DA975F-9C5A-4B4C-B9BE-9C77F9A3D4B2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExampleSpaceship", "ExampleSpaceship\ExampleSpaceship.vcxproj", "{3E651902-431A-491C-A628-1C8CD3CCC01A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -33,6 +35,10 @@ Global
 		{89DA975F-9C5A-4B4C-B9BE-9C77F9A3D4B2}.Debug|Win32.Build.0 = Debug|Win32
 		{89DA975F-9C5A-4B4C-B9BE-9C77F9A3D4B2}.Release|Win32.ActiveCfg = Release|Win32
 		{89DA975F-9C5A-4B4C-B9BE-9C77F9A3D4B2}.Release|Win32.Build.0 = Release|Win32
+		{3E651902-431A-491C-A628-1C8CD3CCC01A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3E651902-431A-491C-A628-1C8CD3CCC01A}.Debug|Win32.Build.0 = Debug|Win32
+		{3E651902-431A-491C-A628-1C8CD3CCC01A}.Release|Win32.ActiveCfg = Release|Win32
+		{3E651902-431A-491C-A628-1C8CD3CCC01A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

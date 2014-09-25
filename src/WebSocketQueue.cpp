@@ -30,10 +30,35 @@ namespace gatey {
         std::copy(content_.begin(), content_.end(), buffer_.begin() + LWS_SEND_BUFFER_PRE_PADDING);
         len_ = content_.size();
     }
+
+	OutMessage::OutMessage(OutMessage&& other) :
+		content_(std::move(other.content_)),
+		destionations_(std::move(other.destionations_)),
+		buffer_(std::move(other.buffer_)),
+		len_(other.len_)
+	{
+	}
+
+	OutMessage& OutMessage::operator=(OutMessage&& other) {
+		content_ = std::move(other.content_);
+		destionations_ = std::move(other.destionations_);
+		buffer_ = std::move(other.buffer_);
+		len_ = other.len_;
+		return *this;
+	}
     
     void OutMessage::removeDestination(SessionId sessionId) {
         destionations_.erase(sessionId);
     }
+
+	//TODO: Slow and wasteful
+	void OutMessage::keepDestinations(std::set<SessionId> const& keep) {
+		std::set<SessionId> kept;
+		for (SessionId id : destionations_)
+			if (keep.find(id) != keep.end())
+				kept.insert(id);
+		destionations_ = std::move(kept);
+	}
     
     InMessage::InMessage() :
         source_(0)
@@ -109,17 +134,13 @@ namespace gatey {
 		case LWS_CALLBACK_RECEIVE: {
 			char const* bytes = (char const*)in;
             InMessage inMessage(perSession->sessionId, bytes, len);
-			{
-				std::lock_guard<std::mutex> guard(self->mutex_);
-				self->inMessages_.push_back(std::move(inMessage));
-				GATEY_LOG("received message");
-			}
+			self->inMessages_.push_back(std::move(inMessage));
 
+			GATEY_LOG("received message");
 			break;
 		}
 		case LWS_CALLBACK_SERVER_WRITEABLE: {
 			//Send messages from the queue
-			std::lock_guard<std::mutex> guard(self->mutex_);
             auto found = self->firstMessageWithDestination(perSession->sessionId);
             if (found == self->outMessages_.end())
                 break;
@@ -198,6 +219,8 @@ namespace gatey {
 	}
 
 	void WebSocketQueue::work() {
+		std::lock_guard<std::mutex> guard(mutex_);
+
 		//TODO: Check if any out messages, HAAAAAACK
 		//std::cout << "outMessages.size()" << outMessages.size() << std::endl;
 		//std::size_t outMessageCount = outMessages_.size();
@@ -205,9 +228,20 @@ namespace gatey {
             libwebsocket_callback_on_writable_all_protocol(webSocketProtocol);
 			messageSent_ = false;
 			libwebsocket_service(context_, 0);
+
 			if (!messageSent_)
 				break;
 		}
+
+		//Cleanup
+		for (OutMessage& message : outMessages_) {
+			message.keepDestinations(sessions_);
+		}
+
+		auto newEnd = std::remove_if(outMessages_.begin(), outMessages_.end(), [](OutMessage const& message) {
+			return message.destinations().empty();
+		});
+		outMessages_.erase(newEnd, outMessages_.end());
 
 		libwebsocket_service(context_, 10);
 	}

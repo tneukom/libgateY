@@ -1,4 +1,5 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
+#undef main //for VC
 
 #include "../../gatey.hpp"
 #include <iostream>
@@ -39,10 +40,10 @@ int main(int argc, const char * argv[])
     gatey::global = std::make_shared<gatey::GateY>();
     
     SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_Window *win = SDL_CreateWindow("Spaceship", 50, 50, 600, 600, SDL_WINDOW_SHOWN);
+    SDL_Window *win = SDL_CreateWindow("Spaceship", 50, 50, 250, 250, SDL_WINDOW_SHOWN);
     SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     
-    Vec2 position(300, 300), velocity(0, 0);
+    Vec2 position(125, 125), velocity(0, 0);
     gatey::WriteVariable<Vec2> gPosition("position"), gVelocity("velocity");
     gatey::ReadVariable<float> gPower("power", 20.0f);
 
@@ -73,9 +74,11 @@ int main(int argc, const char * argv[])
         gVelocity.set(velocity);
         gPosition.set(position);
         
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); //black
         SDL_RenderClear(renderer);
         
         SDL_Rect rect = { (int)position.x - 5, (int)position.y - 5, 10, 10 };
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); //white
         SDL_RenderFillRect(renderer, &rect);
         
         SDL_RenderPresent(renderer);

@@ -1899,14 +1899,28 @@ namespace gatey {
         OutMessage(std::set<SessionId> destinations, std::string content);
         
         OutMessage(OutMessage const& other) = delete;
-        OutMessage(OutMessage&& other) = default;
+        
+		//OutMessage(OutMessage&& other) = default; thanks VS
+
+		//! default move constructor
+		OutMessage(OutMessage&& other);
         
         OutMessage& operator=(OutMessage const& other) = delete;
-        OutMessage& operator=(OutMessage&& other) = default;
+        
+		//OutMessage& operator=(OutMessage&& other) = default;
+
+		//! default move assignment
+		OutMessage& operator=(OutMessage&& other);
+
+		std::set<SessionId> const& destinations() const {
+			return destionations_;
+		}
         
         void removeDestination(SessionId sessionId);
+
+		void keepDestinations(std::set<SessionId> const& keep);
         
-        friend class WebSocketQueue;
+        friend struct WebSocketQueue;
     };
     
     struct InMessage {
@@ -1927,7 +1941,7 @@ namespace gatey {
         InMessage();
         InMessage(SessionId source, char const* bytes, std::size_t len);
         
-        friend class WebSocketQueue;
+        friend struct WebSocketQueue;
     };
 
     //! So we don't have to include the libwebsockets header
