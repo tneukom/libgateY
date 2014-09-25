@@ -10,12 +10,14 @@ Use a web browser to easily visualize data from your C++ program and control it�
 Who is it for?
 --------------
 
-You have a console application and want to visualize some data it’s producing while it is running. You have a game and don’t want to write ingame interface to control some aspect of it’s behaviour. You found a bug and need to graph the value of some variable to get a better understanding of the faulty behaviour.
++ You have a console application and want to visualize some data it’s producing at runtime. 
++ You have a game and don’t want to write an ingame gui to control it’s behaviour. 
++ You found a bug and need to graph the value of a variable to get a better understanding of the faulty behaviour.
 
 What does it do?
 ----------------
 
-LibGateY helps you send data structures over WebSockets from your C++ program to the web browser and the other way. It can send and receive a large amount of C++ standard types by default. For example std::map<std::string, std::tuple<float, float, float>> will automatically be converted to a JSON object of the form { key0: [x, y, z], key1: [x, y, z] }. The serialization machinery can be extended to support your own types.
+LibGateY helps you send data structures over WebSockets from your C++ program to the web browser and the other way. It can send and receive a large amount of C++ standard types by default. For example `std::map<std::string, std::tuple<float, float, float>>` will automatically be converted to a JSON object of the form `{ key0: [x, y, z], key1: [x, y, z] }` The serialization machinery can be extended to support your own types.
 
 How do I use it?
 ----------------
