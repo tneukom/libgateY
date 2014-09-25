@@ -1,6 +1,6 @@
 Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.
 
-![Native and js screenshots](/images/spaceship.png)
+![Native and js screenshots](images/spaceship.png)
 
 What is it for?
 ---------------
