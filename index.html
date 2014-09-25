@@ -31,53 +31,54 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h1>
-<a name="libgatey" class="anchor" href="#libgatey"><span class="octicon octicon-link"></span></a>libgateY</h1>
+        <p>Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.</p>
 
-<p>Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.</p>
+<p><img src="/images/spaceship.png" alt="Native and js screenshots"></p>
 
-<p>Simple example:</p>
+<h2>
+<a name="what-is-it-for" class="anchor" href="#what-is-it-for"><span class="octicon octicon-link"></span></a>What is it for?</h2>
 
-<div class="highlight highlight-c++"><pre><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">argv</span><span class="p">[])</span>
-<span class="p">{</span>
-    <span class="n">gatey</span><span class="o">::</span><span class="n">global</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">gatey</span><span class="o">::</span><span class="n">GateY</span><span class="o">&gt;</span><span class="p">();</span>
+<p>Use a web browser to easily visualize data from your C++ program and control it’s behaviour. </p>
 
-    <span class="n">SDL_Init</span><span class="p">(</span><span class="n">SDL_INIT_EVERYTHING</span><span class="p">);</span>
-    <span class="k">auto</span> <span class="n">win</span> <span class="o">=</span> <span class="n">SDL_CreateWindow</span><span class="p">(</span><span class="s">"Spaceship"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="n">SDL_WINDOW_SHOWN</span><span class="p">);</span>
-    <span class="k">auto</span> <span class="n">renderer</span> <span class="o">=</span> <span class="n">SDL_CreateRenderer</span><span class="p">(</span><span class="n">win</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">SDL_RENDERER_ACCELERATED</span><span class="p">);</span>
+<h2>
+<a name="who-is-it-for" class="anchor" href="#who-is-it-for"><span class="octicon octicon-link"></span></a>Who is it for?</h2>
 
-    <span class="n">Vec2</span> <span class="n">position</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="n">velocity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-    <span class="n">gatey</span><span class="o">::</span><span class="n">WriteVariable</span><span class="o">&lt;</span><span class="n">Vec2</span><span class="o">&gt;</span> <span class="n">gPosition</span><span class="p">(</span><span class="s">"position"</span><span class="p">),</span> <span class="n">gVelocity</span><span class="p">(</span><span class="s">"velocity"</span><span class="p">);</span>
-    <span class="n">gatey</span><span class="o">::</span><span class="n">ReadVariable</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span> <span class="n">gPower</span><span class="p">(</span><span class="s">"power"</span><span class="p">,</span> <span class="mf">20.0f</span><span class="p">);</span>
-    <span class="kt">float</span> <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0f</span> <span class="o">/</span> <span class="mi">30</span><span class="p">;</span>
+<p>You have a console application and want to visualize some data it’s producing while it is running. You have a game and don’t want to write ingame interface to control some aspect of it’s behaviour. You found a bug and need to graph the value of some variable to get a better understanding of the faulty behaviour.</p>
 
-    <span class="k">while</span> <span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">Vec2</span> <span class="n">acceleration</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-        <span class="n">Uint8</span> <span class="k">const</span><span class="o">*</span> <span class="n">keyboard</span> <span class="o">=</span> <span class="n">SDL_GetKeyboardState</span><span class="p">(</span><span class="k">nullptr</span><span class="p">);</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">keyboard</span><span class="p">[</span><span class="n">SDL_SCANCODE_LEFT</span><span class="p">])</span> <span class="n">acceleration</span> <span class="o">+=</span> <span class="n">Vec2</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">keyboard</span><span class="p">[</span><span class="n">SDL_SCANCODE_RIGHT</span><span class="p">])</span> <span class="n">acceleration</span> <span class="o">+=</span> <span class="n">Vec2</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">keyboard</span><span class="p">[</span><span class="n">SDL_SCANCODE_UP</span><span class="p">])</span> <span class="n">acceleration</span> <span class="o">+=</span> <span class="n">Vec2</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">keyboard</span><span class="p">[</span><span class="n">SDL_SCANCODE_DOWN</span><span class="p">])</span> <span class="n">acceleration</span> <span class="o">+=</span> <span class="n">Vec2</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<h2>
+<a name="what-does-it-do" class="anchor" href="#what-does-it-do"><span class="octicon octicon-link"></span></a>What does it do?</h2>
 
-        <span class="n">velocity</span> <span class="o">+=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">gPower</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="n">acceleration</span><span class="p">;</span>
-        <span class="n">position</span> <span class="o">+=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">velocity</span><span class="p">;</span>
+<p>LibGateY helps you send data structures over WebSockets from your C++ program to the web browser and the other way. It can send and receive a large amount of C++ standard types by default. For example std::map&gt; will automatically be converted to a JSON object of the form { key0: [x, y, z], key1: [x, y, z] }. The serialization machinery can be extended to support your own types.</p>
 
-        <span class="n">gVelocity</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">velocity</span><span class="p">);</span>
-        <span class="n">gPosition</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">position</span><span class="p">);</span>
+<h2>
+<a name="how-do-i-use-it" class="anchor" href="#how-do-i-use-it"><span class="octicon octicon-link"></span></a>How do I use it?</h2>
 
-        <span class="n">SDL_RenderClear</span><span class="p">(</span><span class="n">renderer</span><span class="p">);</span>
+<p>LibGateY tries to be as simple to deploy as possible, so it consists of only one .hpp and one .cpp file. It doesn’t have any dependecies. Just copy it into your project.</p>
 
-        <span class="n">SDL_Rect</span> <span class="n">rect</span> <span class="o">=</span> <span class="p">{</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">position</span><span class="p">.</span><span class="n">x</span> <span class="o">-</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">position</span><span class="p">.</span><span class="n">y</span> <span class="o">-</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span> <span class="p">};</span>
-        <span class="n">SDL_RenderFillRect</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rect</span><span class="p">);</span>
+<h2>
+<a name="spaceship-example" class="anchor" href="#spaceship-example"><span class="octicon octicon-link"></span></a>Spaceship example</h2>
 
-        <span class="n">SDL_RenderPresent</span><span class="p">(</span><span class="n">renderer</span><span class="p">);</span>
-    <span class="p">}</span>
+<div class="highlight highlight-c++"><pre><span class="n">gatey</span><span class="o">::</span><span class="n">global</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">gatey</span><span class="o">::</span><span class="n">GateY</span><span class="o">&gt;</span><span class="p">();</span>
 
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="c1">// Init window and graphics (using SDL)</span>
+
+<span class="n">Vec2</span> <span class="nf">position</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="n">velocity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<span class="n">gatey</span><span class="o">::</span><span class="n">WriteVariable</span><span class="o">&lt;</span><span class="n">Vec2</span><span class="o">&gt;</span> <span class="n">gPosition</span><span class="p">(</span><span class="s">"position"</span><span class="p">),</span> <span class="n">gVelocity</span><span class="p">(</span><span class="s">"velocity"</span><span class="p">);</span>
+<span class="n">gatey</span><span class="o">::</span><span class="n">ReadVariable</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span> <span class="n">gPower</span><span class="p">(</span><span class="s">"power"</span><span class="p">,</span> <span class="mf">20.0f</span><span class="p">);</span>
+<span class="kt">float</span> <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0f</span> <span class="o">/</span> <span class="mi">30</span><span class="p">;</span>
+
+<span class="k">while</span> <span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Vec2</span> <span class="n">acceleration</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="c1">// Handle input (arrow keys accelerate)</span>
+
+    <span class="n">velocity</span> <span class="o">+=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">gPower</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="n">acceleration</span><span class="p">;</span>
+    <span class="n">position</span> <span class="o">+=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">velocity</span><span class="p">;</span>
+    <span class="n">gVelocity</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">velocity</span><span class="p">);</span>
+    <span class="n">gPosition</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">position</span><span class="p">);</span>
+
+    <span class="c1">// Draw rectangle at position</span>
 <span class="p">}</span>
 </pre></div>
-
-<p>JavaScript</p>
 
 <div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">gPosition</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gatey</span><span class="p">.</span><span class="nx">ReadVariable</span><span class="p">(</span><span class="s1">'position'</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 <span class="kd">var</span> <span class="nx">gVelocity</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gatey</span><span class="p">.</span><span class="nx">ReadVariable</span><span class="p">(</span><span class="s1">'velocity'</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
@@ -87,12 +88,7 @@
     <span class="nx">gPower</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s2">"#slider_a"</span><span class="p">).</span><span class="nx">slider</span><span class="p">(</span><span class="s2">"value"</span><span class="p">));</span>
 <span class="p">}</span>
 
-<span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="nx">$</span><span class="p">(</span><span class="s1">'#slider_a'</span><span class="p">).</span><span class="nx">slider</span><span class="p">({</span>
-        <span class="nx">min</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">max</span><span class="o">:</span> <span class="mi">100</span><span class="p">,</span> <span class="nx">value</span><span class="o">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="nx">slide</span><span class="o">:</span> <span class="nx">slideUpdate</span><span class="p">,</span> <span class="nx">change</span><span class="o">:</span> <span class="nx">slideUpdate</span>
-    <span class="p">});</span>
-<span class="p">});</span>
+<span class="c1">// JQuery slider</span>
 
 <span class="kd">var</span> <span class="nx">canvas</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">'spaceship_trace'</span><span class="p">);</span>
 <span class="kd">var</span> <span class="nx">ctx</span> <span class="o">=</span> <span class="nx">canvas</span><span class="p">.</span><span class="nx">getContext</span><span class="p">(</span><span class="s1">'2d'</span><span class="p">);</span>
@@ -100,11 +96,7 @@
 <span class="kd">var</span> <span class="nx">lastPos</span> <span class="o">=</span> <span class="kc">undefined</span><span class="p">;</span>
 <span class="nx">gPosition</span><span class="p">.</span><span class="nx">onChange</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">newPos</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">if</span><span class="p">(</span><span class="nx">lastPos</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">ctx</span><span class="p">.</span><span class="nx">beginPath</span><span class="p">();</span>
-        <span class="nx">ctx</span><span class="p">.</span><span class="nx">moveTo</span><span class="p">(</span><span class="nx">lastPos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nx">lastPos</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
-        <span class="nx">ctx</span><span class="p">.</span><span class="nx">lineTo</span><span class="p">(</span><span class="nx">newPos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nx">newPos</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
-        <span class="nx">ctx</span><span class="p">.</span><span class="nx">stroke</span><span class="p">();</span>
-
+        <span class="c1">//Draw line on cavnas</span>
         <span class="nx">$</span><span class="p">(</span><span class="s1">'#position'</span><span class="p">).</span><span class="nx">html</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">newPos</span><span class="p">));</span>
     <span class="p">}</span>
 
