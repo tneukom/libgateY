@@ -1,36 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Libgatey : Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.">
+    <title>LibgateY by tneukom</title>
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Libgatey</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
   </head>
-
   <body>
+    <div class="wrapper">
+      <header>
+        <h1>LibgateY</h1>
+        <p>Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.</p>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/tneukom/libgateY">View on GitHub</a>
+        <p class="view"><a href="https://github.com/tneukom/libgateY">View the Project on GitHub <small>tneukom/libgateY</small></a></p>
 
-          <h1 id="project_title">Libgatey</h1>
-          <h2 id="project_tagline">Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.</h2>
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/tneukom/libgateY/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/tneukom/libgateY/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
+        <ul>
+          <li><a href="https://github.com/tneukom/libgateY/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/tneukom/libgateY/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/tneukom/libgateY">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
         <p>Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.</p>
 
 <p><img src="images/spaceship.png" alt="Native and js screenshots"></p>
@@ -58,6 +55,9 @@
 <h2>
 <a name="spaceship-example" class="anchor" href="#spaceship-example"><span class="octicon octicon-link"></span></a>Spaceship example</h2>
 
+<h5>
+<a name="c" class="anchor" href="#c"><span class="octicon octicon-link"></span></a>C++</h5>
+
 <div class="highlight highlight-c++"><pre><span class="n">gatey</span><span class="o">::</span><span class="n">global</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">gatey</span><span class="o">::</span><span class="n">GateY</span><span class="o">&gt;</span><span class="p">();</span>
 
 <span class="c1">// Init window and graphics (using SDL)</span>
@@ -79,6 +79,9 @@
     <span class="c1">// Draw rectangle at position</span>
 <span class="p">}</span>
 </pre></div>
+
+<h5>
+<a name="javascript" class="anchor" href="#javascript"><span class="octicon octicon-link"></span></a>Javascript</h5>
 
 <div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">gPosition</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gatey</span><span class="p">.</span><span class="nx">ReadVariable</span><span class="p">(</span><span class="s1">'position'</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 <span class="kd">var</span> <span class="nx">gVelocity</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">gatey</span><span class="p">.</span><span class="nx">ReadVariable</span><span class="p">(</span><span class="s1">'velocity'</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
@@ -104,17 +107,12 @@
 <span class="p">};</span>
 </pre></div>
       </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Libgatey maintained by <a href="https://github.com/tneukom">tneukom</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/tneukom">tneukom</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
     </div>
-
+    <script src="javascripts/scale.fix.js"></script>
     
-
   </body>
 </html>
