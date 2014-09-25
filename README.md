@@ -1,6 +1,3 @@
-libgateY
-========
-
 Visualize and control C++ data using the web browser. Single hpp/cpp, no dependencies, OS X, Windows, Linux.
 
 ![Native and js screenshots](/images/spaceship.png)
@@ -61,12 +58,7 @@ function slideUpdate() {
     gPower.set($("#slider_a").slider("value"));
 }
 
-$(function() {
-    $('#slider_a').slider({
-        min: 0, max: 100, value: 20,
-        slide: slideUpdate, change: slideUpdate
-    });
-});
+// JQuery slider
 
 var canvas = document.getElementById('spaceship_trace');
 var ctx = canvas.getContext('2d');
@@ -74,11 +66,7 @@ var ctx = canvas.getContext('2d');
 var lastPos = undefined;
 gPosition.onChange = function(newPos) {
     if(lastPos) {
-        ctx.beginPath();
-        ctx.moveTo(lastPos[0], lastPos[1]);
-        ctx.lineTo(newPos[0], newPos[1]);
-        ctx.stroke();
-
+        //Draw line on cavnas
         $('#position').html(JSON.stringify(newPos));
     }
 
