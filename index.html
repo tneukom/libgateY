@@ -51,12 +51,14 @@
 <h2>
 <a name="who-is-it-for" class="anchor" href="#who-is-it-for"><span class="octicon octicon-link"></span></a>Who is it for?</h2>
 
-<p>You have a console application and want to visualize some data it’s producing while it is running. You have a game and don’t want to write ingame interface to control some aspect of it’s behaviour. You found a bug and need to graph the value of some variable to get a better understanding of the faulty behaviour.</p>
-
-<h2>
+<ul>
+<li>You have a console application and want to visualize some data it’s producing at runtime. </li>
+<li>You have a game and don’t want to write an ingame gui to control it’s behaviour. </li>
+<li>You found a bug and need to graph the value of a variable to get a better understanding of the faulty behaviour.</li>
+</ul><h2>
 <a name="what-does-it-do" class="anchor" href="#what-does-it-do"><span class="octicon octicon-link"></span></a>What does it do?</h2>
 
-<p>LibGateY helps you send data structures over WebSockets from your C++ program to the web browser and the other way. It can send and receive a large amount of C++ standard types by default. For example std::map&gt; will automatically be converted to a JSON object of the form { key0: [x, y, z], key1: [x, y, z] }. The serialization machinery can be extended to support your own types.</p>
+<p>LibGateY helps you send data structures over WebSockets from your C++ program to the web browser and the other way. It can send and receive a large amount of C++ standard types by default. For example <code>std::map&lt;std::string, std::tuple&lt;float, float, float&gt;&gt;</code> will automatically be converted to a JSON object of the form <code>{ key0: [x, y, z], key1: [x, y, z] }</code> The serialization machinery can be extended to support your own types.</p>
 
 <h2>
 <a name="how-do-i-use-it" class="anchor" href="#how-do-i-use-it"><span class="octicon octicon-link"></span></a>How do I use it?</h2>
