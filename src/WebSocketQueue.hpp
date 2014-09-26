@@ -38,25 +38,25 @@ namespace gatey {
         
         OutMessage(OutMessage const& other) = delete;
         
-		//OutMessage(OutMessage&& other) = default; thanks VS
+        //OutMessage(OutMessage&& other) = default; thanks VS
 
-		//! default move constructor
-		OutMessage(OutMessage&& other);
+        //! default move constructor
+        OutMessage(OutMessage&& other);
         
         OutMessage& operator=(OutMessage const& other) = delete;
         
-		//OutMessage& operator=(OutMessage&& other) = default;
+        //OutMessage& operator=(OutMessage&& other) = default;
 
-		//! default move assignment
-		OutMessage& operator=(OutMessage&& other);
+        //! default move assignment
+        OutMessage& operator=(OutMessage&& other);
 
-		std::set<SessionId> const& destinations() const {
-			return destionations_;
-		}
+        std::set<SessionId> const& destinations() const {
+            return destionations_;
+        }
         
         void removeDestination(SessionId sessionId);
 
-		void keepDestinations(std::set<SessionId> const& keep);
+        void keepDestinations(std::set<SessionId> const& keep);
         
         friend struct WebSocketQueue;
     };
@@ -87,20 +87,20 @@ namespace gatey {
 
     //! WebSocket server using the libwebsockets library
     struct WebSocketQueue {
-	private:
-		bool messageSent_;
-		SessionId nextUniqueSessionId_;
+    private:
+        bool messageSent_;
+        SessionId nextUniqueSessionId_;
         
         unsigned int maxSessionCount_;
 
         //! List of unique session ids, at the moment only one session at a time is possible
-		std::set<SessionId> sessions_;
+        std::set<SessionId> sessions_;
 
-		libwebsocket_context *context_;
+        libwebsocket_context *context_;
 
-		mutable std::mutex mutex_;
+        mutable std::mutex mutex_;
 
-		//Using list because resizing is costly
+        //Using list because resizing is costly
 
         //! Incoming messages, std::string has a nothrow move constructor, therefore
         //! resize should not be a problem
@@ -111,7 +111,7 @@ namespace gatey {
         
         std::deque<OutMessage>::iterator firstMessageWithDestination(SessionId sessionId);
 
-	public:
+    public:
         
         std::set<SessionId> sessions() const;
         
@@ -120,19 +120,19 @@ namespace gatey {
                             LibWebsocketsCallbackReasonBoxed const& reasonBoxed,
                             void *user, void *in, size_t len);
         
-		//! send, empty, receive can be called from different threads use work only in the one thread
-		//! Put message on queue to send
-		void emit(OutMessage message);
+        //! send, empty, receive can be called from different threads use work only in the one thread
+        //! Put message on queue to send
+        void emit(OutMessage message);
 
         //! returns a list of new messages
         std::deque<InMessage> receive();
 
         //! call this to do the actual work: send and receiving messages handling network stuff ...
-		void work();
+        void work();
 
-		WebSocketQueue();
-		~WebSocketQueue();
-	};
+        WebSocketQueue();
+        ~WebSocketQueue();
+    };
 
 }
 

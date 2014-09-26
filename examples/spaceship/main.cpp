@@ -74,11 +74,11 @@ int main(int argc, const char * argv[])
         gVelocity.set(velocity);
         gPosition.set(position);
         
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); //black
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); //black
         SDL_RenderClear(renderer);
         
         SDL_Rect rect = { (int)position.x - 5, (int)position.y - 5, 10, 10 };
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); //white
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); //white
         SDL_RenderFillRect(renderer, &rect);
         
         SDL_RenderPresent(renderer);

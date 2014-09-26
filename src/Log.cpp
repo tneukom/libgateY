@@ -11,12 +11,12 @@
 #include <iostream>
 
 namespace gatey {
-	void log(const char* str) {
-		std::cout << str << std::endl;
-	}
+    void log(const char* str) {
+        std::cout << str << std::endl;
+    }
 
-	void log(std::string const& str) {
-		std::cout << str << std::endl;
-	}
+    void log(std::string const& str) {
+        std::cout << str << std::endl;
+    }
 }
 

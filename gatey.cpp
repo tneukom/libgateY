@@ -1249,8 +1249,8 @@ LWS_VISIBLE LWS_EXTERN struct libwebsocket_extension *libwebsocket_get_internal_
 #include <string>
 
 namespace gatey {
-	void log(const char* str);
-	void log(std::string const& str);
+    void log(const char* str);
+    void log(std::string const& str);
 }
 
 #define GATEY_LOG(str) gatey::log(str)
@@ -1284,180 +1284,180 @@ namespace gatey {
 
 namespace gatey {
 
-	std::shared_ptr<GateY> global;
+    std::shared_ptr<GateY> global;
 
 
 
-	GateY::GateY() :
-		stateModified_(false)
-	{
-		start();
-	}
+    GateY::GateY() :
+        stateModified_(false)
+    {
+        start();
+    }
 
-	GateY::~GateY() {
-		running_ = false;
+    GateY::~GateY() {
+        running_ = false;
 #if defined(_MSC_VER)
-		//TODO: Hack to fix bug in MSVC
-		//thread::join deadlocks if called after exit of main() 
-		//see: https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
-		//wait till thead has finished it's work by locking mutexThreadRunning_ which is locked while thread_ is working
-		//and then detach the thread so thread::~thread doesn't abort
-		std::lock_guard<std::mutex> bugGuard(mutexThreadRunning_);
-		thread_.detach();
+        //TODO: Hack to fix bug in MSVC
+        //thread::join deadlocks if called after exit of main() 
+        //see: https://connect.microsoft.com/VisualStudio/feedback/details/747145/std-thread-join-hangs-if-called-after-main-exits-when-using-vs2012-rc
+        //wait till thead has finished it's work by locking mutexThreadRunning_ which is locked while thread_ is working
+        //and then detach the thread so thread::~thread doesn't abort
+        std::lock_guard<std::mutex> bugGuard(mutexThreadRunning_);
+        thread_.detach();
 #else
-		if (thread_.joinable())
-			thread_.join();
+        if (thread_.joinable())
+            thread_.join();
 #endif
-	}
+    }
 
-	void GateY::sendStateUnsynced() {
+    void GateY::sendStateUnsynced() {
         Json::Value jMessage(Json::objectValue);
-		jMessage["cmd"] = "state";
+        jMessage["cmd"] = "state";
 
-		Json::Value jSubscriptions(Json::arrayValue);
-		for (Subscription const& subscription : subscriptions_) {
+        Json::Value jSubscriptions(Json::arrayValue);
+        for (Subscription const& subscription : subscriptions_) {
             Json::Value jSubscription(Json::objectValue);
             jSubscription["name"] = Json::Value(subscription.name_);
-			jSubscriptions.append(jSubscription);
-		}
-		jMessage["subscriptions"] = jSubscriptions;
+            jSubscriptions.append(jSubscription);
+        }
+        jMessage["subscriptions"] = jSubscriptions;
 
-		Json::Value jEmitters(Json::arrayValue);
-		for (Emitter const& emitter : emitters_) {
+        Json::Value jEmitters(Json::arrayValue);
+        for (Emitter const& emitter : emitters_) {
             Json::Value jEmitter(Json::objectValue);
             jEmitter["name"] = Json::Value(emitter.name_);
             jEmitters.append(jEmitter);
-		}
-		jMessage["emitters"] = jEmitters;
+        }
+        jMessage["emitters"] = jEmitters;
 
         std::set<SessionId> sessions = webSocket_->sessions();
-		sendUnsynced(sessions, jMessage);
-	}
+        sendUnsynced(sessions, jMessage);
+    }
 
-	void GateY::handleMessageUnsynced(InMessage const& message) {
-		Json::Reader reader;
-		Json::Value jMessage;
-		reader.parse(message.content(), jMessage);
+    void GateY::handleMessageUnsynced(InMessage const& message) {
+        Json::Reader reader;
+        Json::Value jMessage;
+        reader.parse(message.content(), jMessage);
 
-		std::string cmd = jMessage["cmd"].asString();
-		if (cmd == "state") {
+        std::string cmd = jMessage["cmd"].asString();
+        if (cmd == "state") {
 //            auto f = has(&Emitter::name, std::string("str"));
 //            auto f = std::bind(RemoteSubscription::hasSessionId, id);
 
             
             eraseRemoteSubscriptionsUnsynced(message.source());
-			Json::Value const& jSubscriptions = jMessage["subscriptions"];
-			for (Json::Value const& jSubscription : jSubscriptions) {
+            Json::Value const& jSubscriptions = jMessage["subscriptions"];
+            for (Json::Value const& jSubscription : jSubscriptions) {
                 std::string name = jSubscription["name"].asString();
                 remoteSubscriptions_.emplace_back(std::move(name), message.source());
-			}
+            }
 
-			
+            
             eraseRemoteEmitters(message.source());
-			Json::Value const& jEmitters = jMessage["emitters"];
-			for (Json::Value const& jEmitter : jEmitters) {
-				std::string name = jEmitter["name"].asString();
-				remoteEmitters_.emplace_back(std::move(name), message.source());
-			}
-		}
-		else if (cmd == "message") {
-			std::string name = jMessage["name"].asString();
-			auto found = findSubscriptionUnsynced(name);
-			if (found == subscriptions_.end()) {
-				GATEY_LOG("received message without port");
-				return;
-			}
+            Json::Value const& jEmitters = jMessage["emitters"];
+            for (Json::Value const& jEmitter : jEmitters) {
+                std::string name = jEmitter["name"].asString();
+                remoteEmitters_.emplace_back(std::move(name), message.source());
+            }
+        }
+        else if (cmd == "message") {
+            std::string name = jMessage["name"].asString();
+            auto found = findSubscriptionUnsynced(name);
+            if (found == subscriptions_.end()) {
+                GATEY_LOG("received message without port");
+                return;
+            }
 
-			Subscription& subscription = *found;
+            Subscription& subscription = *found;
 
             //RETARDED
             Json::Value const& jValue = jMessage["content"];
-			if (subscription.receive_ != nullptr) {
+            if (subscription.receive_ != nullptr) {
                 //TODO: Copies jValue, create callback class and use move constructor (swap because JsonCpp doesn't
                 //support move semantics
-				callbacks_.push_back(std::bind(subscription.receive_, jValue));
-				//gate.receive_(content);
-			}
+                callbacks_.push_back(std::bind(subscription.receive_, jValue));
+                //gate.receive_(content);
+            }
 
-		}
-		else if (cmd == "init") {
+        }
+        else if (cmd == "init") {
             //! TODO: Not really necessary, add callback to WebSocketQueue on connected
-			sendStateUnsynced();
-		}
-	}
+            sendStateUnsynced();
+        }
+    }
 
-	void GateY::processCallbacks() {
-		std::vector<std::function<void()>> callbacks;
-		{
-			std::lock_guard<std::mutex> guard(mutex_);
-			callbacks = std::move(callbacks_);
-		}
+    void GateY::processCallbacks() {
+        std::vector<std::function<void()>> callbacks;
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            callbacks = std::move(callbacks_);
+        }
 
-		for (std::function<void()>& callback : callbacks)
-			callback();
-	}
+        for (std::function<void()>& callback : callbacks)
+            callback();
+    }
 
-	void GateY::work() {
-		{
-			std::lock_guard<std::mutex> guard(mutex_);
+    void GateY::work() {
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
 
-			if (webSocket_ == nullptr)
-				return;
+            if (webSocket_ == nullptr)
+                return;
 
-			if (stateModified_) {
-				sendStateUnsynced();
-				stateModified_ = false;
-			}
+            if (stateModified_) {
+                sendStateUnsynced();
+                stateModified_ = false;
+            }
 
             //TODO: Not thread safe, DONE
             std::deque<InMessage> messages = webSocket_->receive();
-			for (InMessage const& message : messages) {
-				handleMessageUnsynced(message);
-			}
-		}
+            for (InMessage const& message : messages) {
+                handleMessageUnsynced(message);
+            }
+        }
 
-		//TODO: Check if syncing necessary
-		webSocket_->work();
+        //TODO: Check if syncing necessary
+        webSocket_->work();
 
-		processCallbacks();
-	}
+        processCallbacks();
+    }
 
 
-	void GateY::subscribe(std::string const& name, std::function<void(Json::Value const& jValue)> receive) {
-		std::lock_guard<std::mutex> guard(mutex_);
+    void GateY::subscribe(std::string const& name, std::function<void(Json::Value const& jValue)> receive) {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-		auto found = findSubscriptionUnsynced(name);
-		if (found != subscriptions_.end()) {
-			//Gate with this name already exists just changing callback
-			Subscription& subscription = *found;
-			subscription.receive_ = receive;
-			return;
-		}
+        auto found = findSubscriptionUnsynced(name);
+        if (found != subscriptions_.end()) {
+            //Gate with this name already exists just changing callback
+            Subscription& subscription = *found;
+            subscription.receive_ = receive;
+            return;
+        }
 
-		//Subscription subscription(receive);
-		subscriptions_.emplace_back(std::move(name), std::move(receive));
-		stateModified_ = true;
-	}
+        //Subscription subscription(receive);
+        subscriptions_.emplace_back(std::move(name), std::move(receive));
+        stateModified_ = true;
+    }
 
-	void GateY::openEmitter(std::string const& name) {
-		std::lock_guard<std::mutex> guard(mutex_);
+    void GateY::openEmitter(std::string const& name) {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-		auto found = findEmitterUnsynced(name);
-		if (found != emitters_.end()) {
-			//Gate with this name already exists just changing callback
-			return;
-		}
+        auto found = findEmitterUnsynced(name);
+        if (found != emitters_.end()) {
+            //Gate with this name already exists just changing callback
+            return;
+        }
 
-		emitters_.emplace_back(name);
-		stateModified_ = true;
-	}
+        emitters_.emplace_back(name);
+        stateModified_ = true;
+    }
 
-	void GateY::sendUnsynced(std::set<SessionId> sessions, Json::Value const& jValue) {
-		Json::FastWriter jsonWriter;
-		std::string content = jsonWriter.write(jValue);
+    void GateY::sendUnsynced(std::set<SessionId> sessions, Json::Value const& jValue) {
+        Json::FastWriter jsonWriter;
+        std::string content = jsonWriter.write(jValue);
         OutMessage outMessage(std::move(sessions), std::move(content));
-		webSocket_->emit(std::move(outMessage));
-	}
+        webSocket_->emit(std::move(outMessage));
+    }
     
     void GateY::broadcastUnsynced(Json::Value const& json) {
         std::set<SessionId> allSessions = webSocket_->sessions();
@@ -1465,115 +1465,115 @@ namespace gatey {
     }
 
     //Send 
-	void GateY::emit(std::string const& name, Json::Value const& jValue) {
-		auto foundEmitter = findEmitterUnsynced(name);
-		if (foundEmitter == emitters_.end()) {
-			GATEY_LOG("can't send message, no local send gate open with name: " + name);
-			return;
-		}
+    void GateY::emit(std::string const& name, Json::Value const& jValue) {
+        auto foundEmitter = findEmitterUnsynced(name);
+        if (foundEmitter == emitters_.end()) {
+            GATEY_LOG("can't send message, no local send gate open with name: " + name);
+            return;
+        }
 
-		auto foundRemoteSubscription = findRemoteSubscriptionUnsynced(name);
-		if (foundRemoteSubscription == remoteSubscriptions_.end()) {
-			GATEY_LOG("can't send message, no remote receive gate open with name: " + name);
-			return;
-		}
+        auto foundRemoteSubscription = findRemoteSubscriptionUnsynced(name);
+        if (foundRemoteSubscription == remoteSubscriptions_.end()) {
+            GATEY_LOG("can't send message, no remote receive gate open with name: " + name);
+            return;
+        }
 
-		Json::Value message;
-		message["cmd"] = "message";
-		message["name"] = name;
-		message["content"] = jValue;
+        Json::Value message;
+        message["cmd"] = "message";
+        message["name"] = name;
+        message["content"] = jValue;
         
         std::set<SessionId> sessions = collectRemoteSubscriptions(name);
         std::vector<SessionId> deb(sessions.begin(), sessions.end());
         sendUnsynced(sessions, message);
-	}
+    }
 
-	void GateY::unsubscribeUnsynced(std::string const& name) {
-		auto found = findSubscriptionUnsynced(name);
-		if (found == subscriptions_.end()) {
-			GATEY_LOG("no gate to delete with name: " + name);
-			return;
-		}
+    void GateY::unsubscribeUnsynced(std::string const& name) {
+        auto found = findSubscriptionUnsynced(name);
+        if (found == subscriptions_.end()) {
+            GATEY_LOG("no gate to delete with name: " + name);
+            return;
+        }
 
-		subscriptions_.erase(found);
-		stateModified_ = true;
-	}
+        subscriptions_.erase(found);
+        stateModified_ = true;
+    }
 
-	void GateY::closeEmitterUnsynced(std::string const& name) {
-		auto found = findEmitterUnsynced(name);
-		if (found == emitters_.end()) {
-			GATEY_LOG("no gate to close with name: " + name);
-			return;
-		}
+    void GateY::closeEmitterUnsynced(std::string const& name) {
+        auto found = findEmitterUnsynced(name);
+        if (found == emitters_.end()) {
+            GATEY_LOG("no gate to close with name: " + name);
+            return;
+        }
 
-		emitters_.erase(found);
-		stateModified_ = true;
-	}
+        emitters_.erase(found);
+        stateModified_ = true;
+    }
 
-	void GateY::unsubscribe(std::string const& name) {
-		std::lock_guard<std::mutex> guard(mutex_);
-		unsubscribeUnsynced(name);
-	}
+    void GateY::unsubscribe(std::string const& name) {
+        std::lock_guard<std::mutex> guard(mutex_);
+        unsubscribeUnsynced(name);
+    }
 
-	void GateY::closeEmitter(std::string const& name) {
-		std::lock_guard<std::mutex> guard(mutex_);
-		closeEmitterUnsynced(name);
-	}
+    void GateY::closeEmitter(std::string const& name) {
+        std::lock_guard<std::mutex> guard(mutex_);
+        closeEmitterUnsynced(name);
+    }
 
-	void GateY::start() {
-		//TODO: Does this work? libwebsocket is not thread safe (does it work if accessed from different threads?
-		webSocket_.reset(new WebSocketQueue());
+    void GateY::start() {
+        //TODO: Does this work? libwebsocket is not thread safe (does it work if accessed from different threads?
+        webSocket_.reset(new WebSocketQueue());
 
-		running_ = true;
-		thread_ = std::thread([this] {
-			{
+        running_ = true;
+        thread_ = std::thread([this] {
+            {
 #if defined(_MSC_VER)
-				std::lock_guard<std::mutex> bugGuard(mutexThreadRunning_);
+                std::lock_guard<std::mutex> bugGuard(mutexThreadRunning_);
 #endif
 
-				while (running_) {
-					work();
-				}
-			}
-		});
+                while (running_) {
+                    work();
+                }
+            }
+        });
 
 
-	}
+    }
     
     std::vector<Subscription>::iterator
     GateY::findSubscriptionUnsynced(std::string const& name) {
         return std::find_if(subscriptions_.begin(), subscriptions_.end(),
-                            [&name](Subscription const& subscription)
-                            {
-                                return subscription.name_ == name;
-                            });
+            [&name](Subscription const& subscription)
+            {
+                return subscription.name_ == name;
+            });
     }
     
     std::vector<Emitter>::iterator
     GateY::findEmitterUnsynced(std::string const& name) {
         return std::find_if(emitters_.begin(), emitters_.end(),
-                            [&name](Emitter const& emitter)
-                            {
-                                return emitter.name_ == name;
-                            });
+            [&name](Emitter const& emitter)
+            {
+                return emitter.name_ == name;
+            });
     }
     
     std::vector<RemoteEmitter>::iterator
     GateY::findRemoteEmitterUnsynced(std::string const& name) {
         return std::find_if(remoteEmitters_.begin(), remoteEmitters_.end(),
-                            [&name](RemoteEmitter const& remoteEmitter)
-                            {
-                                return remoteEmitter.name_ == name;
-                            });
+            [&name](RemoteEmitter const& remoteEmitter)
+            {
+                return remoteEmitter.name_ == name;
+            });
     }
     
     std::vector<RemoteSubscription>::iterator
     GateY::findRemoteSubscriptionUnsynced(std::string const& name) {
         return std::find_if(remoteSubscriptions_.begin(), remoteSubscriptions_.end(),
-                            [&name](RemoteSubscription const& remoteSubscription)
-                            {
-                                return remoteSubscription.name_ == name;
-                            });
+            [&name](RemoteSubscription const& remoteSubscription)
+            {
+                return remoteSubscription.name_ == name;
+            });
     }
     
     std::set<SessionId>
@@ -1588,19 +1588,19 @@ namespace gatey {
     
     void GateY::eraseRemoteSubscriptionsUnsynced(SessionId sessionId) {
         auto newEnd = std::remove_if(remoteSubscriptions_.begin(), remoteSubscriptions_.end(),
-                                     [sessionId](RemoteSubscription const& elem)
-                                     {
-                                         return elem.sessionId_ == sessionId;
-                                     });
+            [sessionId](RemoteSubscription const& elem)
+            {
+                return elem.sessionId_ == sessionId;
+            });
         remoteSubscriptions_.erase(newEnd, remoteSubscriptions_.end());
     }
     
     void GateY::eraseRemoteEmitters(SessionId sessionId) {
         auto newEnd = std::remove_if(remoteEmitters_.begin(), remoteEmitters_.end(),
-                                     [sessionId](RemoteEmitter const& elem)
-                                     {
-                                         return elem.sessionId_ == sessionId;
-                                     });
+            [sessionId](RemoteEmitter const& elem)
+            {
+                return elem.sessionId_ == sessionId;
+            });
         remoteEmitters_.erase(newEnd, remoteEmitters_.end());
     }
 
@@ -1623,13 +1623,13 @@ namespace gatey {
 #include <iostream>
 
 namespace gatey {
-	void log(const char* str) {
-		std::cout << str << std::endl;
-	}
+    void log(const char* str) {
+        std::cout << str << std::endl;
+    }
 
-	void log(std::string const& str) {
-		std::cout << str << std::endl;
-	}
+    void log(std::string const& str) {
+        std::cout << str << std::endl;
+    }
 }
 
 
@@ -1754,34 +1754,34 @@ namespace gatey {
         len_ = content_.size();
     }
 
-	OutMessage::OutMessage(OutMessage&& other) :
-		content_(std::move(other.content_)),
-		destionations_(std::move(other.destionations_)),
-		buffer_(std::move(other.buffer_)),
-		len_(other.len_)
-	{
-	}
+    OutMessage::OutMessage(OutMessage&& other) :
+        content_(std::move(other.content_)),
+        destionations_(std::move(other.destionations_)),
+        buffer_(std::move(other.buffer_)),
+        len_(other.len_)
+    {
+    }
 
-	OutMessage& OutMessage::operator=(OutMessage&& other) {
-		content_ = std::move(other.content_);
-		destionations_ = std::move(other.destionations_);
-		buffer_ = std::move(other.buffer_);
-		len_ = other.len_;
-		return *this;
-	}
+    OutMessage& OutMessage::operator=(OutMessage&& other) {
+        content_ = std::move(other.content_);
+        destionations_ = std::move(other.destionations_);
+        buffer_ = std::move(other.buffer_);
+        len_ = other.len_;
+        return *this;
+    }
     
     void OutMessage::removeDestination(SessionId sessionId) {
         destionations_.erase(sessionId);
     }
 
-	//TODO: Slow and wasteful
-	void OutMessage::keepDestinations(std::set<SessionId> const& keep) {
-		std::set<SessionId> kept;
-		for (SessionId id : destionations_)
-			if (keep.find(id) != keep.end())
-				kept.insert(id);
-		destionations_ = std::move(kept);
-	}
+    //TODO: Slow and wasteful
+    void OutMessage::keepDestinations(std::set<SessionId> const& keep) {
+        std::set<SessionId> kept;
+        for (SessionId id : destionations_)
+            if (keep.find(id) != keep.end())
+                kept.insert(id);
+        destionations_ = std::move(kept);
+    }
     
     InMessage::InMessage() :
         source_(0)
@@ -1794,15 +1794,15 @@ namespace gatey {
     {
     }
 
-	struct PerSession {
-		SessionId sessionId;
-	};
+    struct PerSession {
+        SessionId sessionId;
+    };
 
     struct LibWebsocketsCallbackReasonBoxed {
         libwebsocket_callback_reasons value;
     };
 
-	int callback_impl(libwebsocket_context *context, libwebsocket *wsi,
+    int callback_impl(libwebsocket_context *context, libwebsocket *wsi,
                       libwebsocket_callback_reasons reason, void *user,
                       void *in, size_t len);
     
@@ -1817,7 +1817,7 @@ namespace gatey {
 
     static libwebsocket_protocols *webSocketProtocol = &protocols[0];
 
-	//Called in the server thread
+    //Called in the server thread
     int callback_impl(libwebsocket_context *context, libwebsocket *wsi,
                       libwebsocket_callback_reasons reason, void *user,
                       void *in, size_t len)
@@ -1834,36 +1834,36 @@ namespace gatey {
         PerSession *perSession = (PerSession*)user;
         libwebsocket_callback_reasons reason = reasonBoxed.value;
 
-		// reason for callback
-		switch (reason) {
-		case LWS_CALLBACK_FILTER_NETWORK_CONNECTION: {
-			if (self->sessions_.size() >= self->maxSessionCount_) {
-				GATEY_LOG("not accepting connection because already connected");
-				return -1;
-			}
-			break;
-		}
-		case LWS_CALLBACK_ESTABLISHED:
-			*perSession = { self->nextUniqueSessionId_ };
-			self->nextUniqueSessionId_++;
-			self->sessions_.insert(perSession->sessionId);
-			if (self->sessions_.size() > self->maxSessionCount_) {
-				GATEY_LOG("connection established but will be canceled" + std::to_string(perSession->sessionId));
-				return -1;
-			}
+        // reason for callback
+        switch (reason) {
+        case LWS_CALLBACK_FILTER_NETWORK_CONNECTION: {
+            if (self->sessions_.size() >= self->maxSessionCount_) {
+                GATEY_LOG("not accepting connection because already connected");
+                return -1;
+            }
+            break;
+        }
+        case LWS_CALLBACK_ESTABLISHED:
+            *perSession = { self->nextUniqueSessionId_ };
+            self->nextUniqueSessionId_++;
+            self->sessions_.insert(perSession->sessionId);
+            if (self->sessions_.size() > self->maxSessionCount_) {
+                GATEY_LOG("connection established but will be canceled" + std::to_string(perSession->sessionId));
+                return -1;
+            }
 
-			GATEY_LOG("connection established" + std::to_string(perSession->sessionId));
-			break;
-		case LWS_CALLBACK_RECEIVE: {
-			char const* bytes = (char const*)in;
+            GATEY_LOG("connection established" + std::to_string(perSession->sessionId));
+            break;
+        case LWS_CALLBACK_RECEIVE: {
+            char const* bytes = (char const*)in;
             InMessage inMessage(perSession->sessionId, bytes, len);
-			self->inMessages_.push_back(std::move(inMessage));
+            self->inMessages_.push_back(std::move(inMessage));
 
-			GATEY_LOG("received message");
-			break;
-		}
-		case LWS_CALLBACK_SERVER_WRITEABLE: {
-			//Send messages from the queue
+            GATEY_LOG("received message");
+            break;
+        }
+        case LWS_CALLBACK_SERVER_WRITEABLE: {
+            //Send messages from the queue
             auto found = self->firstMessageWithDestination(perSession->sessionId);
             if (found == self->outMessages_.end())
                 break;
@@ -1872,11 +1872,11 @@ namespace gatey {
             libwebsocket_write(wsi, (unsigned char*)&message.buffer_[LWS_SEND_BUFFER_PRE_PADDING], message.len_, LWS_WRITE_TEXT);
             
             message.removeDestination(perSession->sessionId);
-			self->messageSent_ = true;
-			break;
-		}
-		case LWS_CALLBACK_CLOSED: {
-			self->sessions_.erase(perSession->sessionId);
+            self->messageSent_ = true;
+            break;
+        }
+        case LWS_CALLBACK_CLOSED: {
+            self->sessions_.erase(perSession->sessionId);
             for(OutMessage& outMessage : self->outMessages_) {
                 outMessage.removeDestination(perSession->sessionId);
             }
@@ -1888,98 +1888,98 @@ namespace gatey {
 //                return message.sessionId_ == sessionId;
 //            });
             
-			GATEY_LOG("connection closed" + std::to_string(perSession->sessionId));
-			break;
-		}
+            GATEY_LOG("connection closed" + std::to_string(perSession->sessionId));
+            break;
+        }
 
-		default: break;
-		}
+        default: break;
+        }
 
-		return 0;
-	}
+        return 0;
+    }
 
-	WebSocketQueue::WebSocketQueue() :
-		messageSent_(false),
-		nextUniqueSessionId_(0),
+    WebSocketQueue::WebSocketQueue() :
+        messageSent_(false),
+        nextUniqueSessionId_(0),
         maxSessionCount_(10)
-	{
+    {
 
 
-		//httpProtocol = &protocols[0];
+        //httpProtocol = &protocols[0];
         //webSocketProtocol_ = &protocols_[0];
 
-		// server url will be ws://localhost:9000
-		int port = 9000;
+        // server url will be ws://localhost:9000
+        int port = 9000;
 
-		lws_set_log_level(7, lwsl_emit_syslog);
+        lws_set_log_level(7, lwsl_emit_syslog);
 
-		// create connection struct
-		lws_context_creation_info info = { 0 };
-		info.port = port;
-		info.iface = nullptr;
+        // create connection struct
+        lws_context_creation_info info = { 0 };
+        info.port = port;
+        info.iface = nullptr;
         info.protocols = protocols;
-		info.extensions = nullptr;
-		info.ssl_cert_filepath = nullptr;
-		info.ssl_private_key_filepath = nullptr;
-		info.options = 0;
-		info.user = this;
+        info.extensions = nullptr;
+        info.ssl_cert_filepath = nullptr;
+        info.ssl_private_key_filepath = nullptr;
+        info.options = 0;
+        info.user = this;
 
-		// create libwebsocket context representing this server
-		context_ = libwebsocket_create_context(&info);
+        // create libwebsocket context representing this server
+        context_ = libwebsocket_create_context(&info);
 
-		// make sure it starts
-		if (context_ == NULL) {
-			GATEY_LOG("libwebsocket init failed");
-			//TODO: throw exception
-			return;
-		}
+        // make sure it starts
+        if (context_ == NULL) {
+            GATEY_LOG("libwebsocket init failed");
+            //TODO: throw exception
+            return;
+        }
 
-		GATEY_LOG("starting server...");
-	}
+        GATEY_LOG("starting server...");
+    }
 
-	WebSocketQueue::~WebSocketQueue() {
-		libwebsocket_context_destroy(context_);
-	}
+    WebSocketQueue::~WebSocketQueue() {
+        libwebsocket_context_destroy(context_);
+    }
 
-	void WebSocketQueue::work() {
-		std::lock_guard<std::mutex> guard(mutex_);
+    void WebSocketQueue::work() {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-		//TODO: Check if any out messages, HAAAAAACK
-		//std::cout << "outMessages.size()" << outMessages.size() << std::endl;
-		//std::size_t outMessageCount = outMessages_.size();
-		while (!outMessages_.empty()) {
+        //TODO: Check if any out messages, HAAAAAACK
+        //std::cout << "outMessages.size()" << outMessages.size() << std::endl;
+        //std::size_t outMessageCount = outMessages_.size();
+        while (!outMessages_.empty()) {
             libwebsocket_callback_on_writable_all_protocol(webSocketProtocol);
-			messageSent_ = false;
-			libwebsocket_service(context_, 0);
+            messageSent_ = false;
+            libwebsocket_service(context_, 0);
 
-			if (!messageSent_)
-				break;
-		}
+            if (!messageSent_)
+                break;
+        }
 
-		//Cleanup
-		for (OutMessage& message : outMessages_) {
-			message.keepDestinations(sessions_);
-		}
+        //Cleanup
+        for (OutMessage& message : outMessages_) {
+            message.keepDestinations(sessions_);
+        }
 
-		auto newEnd = std::remove_if(outMessages_.begin(), outMessages_.end(), [](OutMessage const& message) {
-			return message.destinations().empty();
-		});
-		outMessages_.erase(newEnd, outMessages_.end());
+        auto newEnd = std::remove_if(outMessages_.begin(), outMessages_.end(), [](OutMessage const& message) {
+            return message.destinations().empty();
+        });
+        outMessages_.erase(newEnd, outMessages_.end());
 
-		libwebsocket_service(context_, 10);
-	}
+        libwebsocket_service(context_, 10);
+    }
 
-	void WebSocketQueue::emit(OutMessage message) {
-		std::lock_guard<std::mutex> guard(mutex_);
-		outMessages_.push_back(std::move(message));
-	}
+    void WebSocketQueue::emit(OutMessage message) {
+        std::lock_guard<std::mutex> guard(mutex_);
+        outMessages_.push_back(std::move(message));
+    }
 
     std::deque<InMessage> WebSocketQueue::receive() {
-		std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(mutex_);
 
         std::deque<InMessage> result(std::move(inMessages_));
-		return result;
-	}
+        return result;
+    }
     
     std::set<SessionId> WebSocketQueue::sessions() const {
         std::lock_guard<std::mutex> guard(mutex_);
@@ -1991,10 +1991,10 @@ namespace gatey {
     std::deque<OutMessage>::iterator
     WebSocketQueue::firstMessageWithDestination(SessionId sessionId) {
         return std::find_if(outMessages_.begin(), outMessages_.end(),
-                            [sessionId](OutMessage const& outMessage)
-        {
-            return outMessage.destionations_.find(sessionId) != outMessage.destionations_.end();
-        });
+            [sessionId](OutMessage const& outMessage)
+            {
+                return outMessage.destionations_.find(sessionId) != outMessage.destionations_.end();
+            });
     }
 
 }

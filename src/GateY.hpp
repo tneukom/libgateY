@@ -45,7 +45,7 @@ namespace gatey {
     
 
     //! internal
-	struct Emitter {
+    struct Emitter {
         std::string name_;
         
         Emitter() = default;
@@ -58,13 +58,13 @@ namespace gatey {
         std::string const& name() const {
             return name_;
         }
-	};
+    };
 
     //! internal
-	struct Subscription {
+    struct Subscription {
         std::string name_;
         // std::string identifier_; maybe in the future
-		std::function<void(Json::Value const& jValue)> receive_;
+        std::function<void(Json::Value const& jValue)> receive_;
         
         Subscription() = default;
         
@@ -73,10 +73,10 @@ namespace gatey {
             receive_(std::move(receive))
         {
         }
-	};
+    };
     
     //! internal
-	struct RemoteEmitter {
+    struct RemoteEmitter {
         std::string name_;
         SessionId sessionId_;
         
@@ -87,10 +87,10 @@ namespace gatey {
             sessionId_(sessionId)
         {
         }
-	};
+    };
 
     //! internal
-	struct RemoteSubscription {
+    struct RemoteSubscription {
         std::string name_;
         SessionId sessionId_;
         
@@ -101,7 +101,7 @@ namespace gatey {
             sessionId_(sessionId)
         {
         }
-	};
+    };
     
     //! open and close gates, which come in two forms: receive gates and send gates
     //! messages can be sent over send gates and a receive gate on the remote side will
@@ -110,63 +110,63 @@ namespace gatey {
     //! receive gate, the message is discarded
     //! If gates are opened or closes the remote side will be notified automatically
     //! Functions with the Unsynced postfix don't lock on mutex_ all other functions lock mutex_
-	struct GateY {
-	private:
+    struct GateY {
+    private:
         //! true if any gates were opened or closed
-		bool stateModified_;
+        bool stateModified_;
 
-		//! is true while thread_ is running
-		bool running_;
+        //! is true while thread_ is running
+        bool running_;
 
         //! WebSocket server which does the actual network stuff
-		std::unique_ptr<WebSocketQueue> webSocket_;
+        std::unique_ptr<WebSocketQueue> webSocket_;
 
         //! Runs the network and dispatching work
-		std::thread thread_;
-		std::mutex mutex_;
+        std::thread thread_;
+        std::mutex mutex_;
 
 #if defined(_MSC_VER)
-		//! msvc deadlocks if thread::join is called after main exits, see ~GateY for more details
-		std::mutex mutexThreadRunning_;
+        //! msvc deadlocks if thread::join is called after main exits, see ~GateY for more details
+        std::mutex mutexThreadRunning_;
 #endif
 
-		std::vector<Subscription> subscriptions_;
-		std::vector<RemoteSubscription> remoteSubscriptions_;
-		std::vector<Emitter> emitters_;
-		std::vector<RemoteEmitter> remoteEmitters_;
+        std::vector<Subscription> subscriptions_;
+        std::vector<RemoteSubscription> remoteSubscriptions_;
+        std::vector<Emitter> emitters_;
+        std::vector<RemoteEmitter> remoteEmitters_;
 
         //! List of callback that have to be called, callbacks aren't called while
         //! mutex_ is locked because the callback should be able to call GateY functions
         //! They are collected and called at a later time
-		std::vector<std::function<void()>> callbacks_;
+        std::vector<std::function<void()>> callbacks_;
 
         //! Send a json package to remote
-		void sendUnsynced(std::set<SessionId> sessions, Json::Value const& jValue);
+        void sendUnsynced(std::set<SessionId> sessions, Json::Value const& jValue);
         
         //! Send a json package to all remotes
         void broadcastUnsynced(Json::Value const& jValue);
 
         //! Send a list of open send and receive gates to remote
-		void sendStateUnsynced();
+        void sendStateUnsynced();
 
         //! Handle a message receive from remote, messages include:
         //! - state change
         //! - content
         //! - init
-		void handleMessageUnsynced(InMessage const& message);
+        void handleMessageUnsynced(InMessage const& message);
 
 
         //! Calls all the callbacks_ and clears it
-		void processCallbacks();
+        void processCallbacks();
 
         //! Handles new messages from webSocket_
-		void work();
+        void work();
 
         //! Close the receive gate with the given name and sends a state update
-		void unsubscribeUnsynced(std::string const& name);
+        void unsubscribeUnsynced(std::string const& name);
 
         //! Close the send gate with the given name
-		void closeEmitterUnsynced(std::string const& name);
+        void closeEmitterUnsynced(std::string const& name);
 
         //! Start the server
         void start();
@@ -185,13 +185,13 @@ namespace gatey {
         
         void eraseRemoteEmitters(SessionId sessionId);
 
-	public:
+    public:
         
         //! Starts the server
-		GateY();
+        GateY();
 
         //! Stops the server
-		~GateY();
+        ~GateY();
         
         // Subscribe to receive all messages with the given name
         void subscribe(std::string const& name, std::function<void(Json::Value const& jValue)> receive);
@@ -208,10 +208,10 @@ namespace gatey {
         // Unannounce the sending of messages with the given name
         void closeEmitter(std::string const& name);
         
-	};
+    };
 
     //! global GateY, Variables use this global gateY to open gates
-	extern std::shared_ptr<GateY> global;
+    extern std::shared_ptr<GateY> global;
 
 }
 

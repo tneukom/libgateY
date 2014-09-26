@@ -1900,25 +1900,25 @@ namespace gatey {
         
         OutMessage(OutMessage const& other) = delete;
         
-		//OutMessage(OutMessage&& other) = default; thanks VS
+        //OutMessage(OutMessage&& other) = default; thanks VS
 
-		//! default move constructor
-		OutMessage(OutMessage&& other);
+        //! default move constructor
+        OutMessage(OutMessage&& other);
         
         OutMessage& operator=(OutMessage const& other) = delete;
         
-		//OutMessage& operator=(OutMessage&& other) = default;
+        //OutMessage& operator=(OutMessage&& other) = default;
 
-		//! default move assignment
-		OutMessage& operator=(OutMessage&& other);
+        //! default move assignment
+        OutMessage& operator=(OutMessage&& other);
 
-		std::set<SessionId> const& destinations() const {
-			return destionations_;
-		}
+        std::set<SessionId> const& destinations() const {
+            return destionations_;
+        }
         
         void removeDestination(SessionId sessionId);
 
-		void keepDestinations(std::set<SessionId> const& keep);
+        void keepDestinations(std::set<SessionId> const& keep);
         
         friend struct WebSocketQueue;
     };
@@ -1949,20 +1949,20 @@ namespace gatey {
 
     //! WebSocket server using the libwebsockets library
     struct WebSocketQueue {
-	private:
-		bool messageSent_;
-		SessionId nextUniqueSessionId_;
+    private:
+        bool messageSent_;
+        SessionId nextUniqueSessionId_;
         
         unsigned int maxSessionCount_;
 
         //! List of unique session ids, at the moment only one session at a time is possible
-		std::set<SessionId> sessions_;
+        std::set<SessionId> sessions_;
 
-		libwebsocket_context *context_;
+        libwebsocket_context *context_;
 
-		mutable std::mutex mutex_;
+        mutable std::mutex mutex_;
 
-		//Using list because resizing is costly
+        //Using list because resizing is costly
 
         //! Incoming messages, std::string has a nothrow move constructor, therefore
         //! resize should not be a problem
@@ -1973,7 +1973,7 @@ namespace gatey {
         
         std::deque<OutMessage>::iterator firstMessageWithDestination(SessionId sessionId);
 
-	public:
+    public:
         
         std::set<SessionId> sessions() const;
         
@@ -1982,19 +1982,19 @@ namespace gatey {
                             LibWebsocketsCallbackReasonBoxed const& reasonBoxed,
                             void *user, void *in, size_t len);
         
-		//! send, empty, receive can be called from different threads use work only in the one thread
-		//! Put message on queue to send
-		void emit(OutMessage message);
+        //! send, empty, receive can be called from different threads use work only in the one thread
+        //! Put message on queue to send
+        void emit(OutMessage message);
 
         //! returns a list of new messages
         std::deque<InMessage> receive();
 
         //! call this to do the actual work: send and receiving messages handling network stuff ...
-		void work();
+        void work();
 
-		WebSocketQueue();
-		~WebSocketQueue();
-	};
+        WebSocketQueue();
+        ~WebSocketQueue();
+    };
 
 }
 
@@ -2265,7 +2265,7 @@ namespace gatey {
     
 
     //! internal
-	struct Emitter {
+    struct Emitter {
         std::string name_;
         
         Emitter() = default;
@@ -2278,13 +2278,13 @@ namespace gatey {
         std::string const& name() const {
             return name_;
         }
-	};
+    };
 
     //! internal
-	struct Subscription {
+    struct Subscription {
         std::string name_;
         // std::string identifier_; maybe in the future
-		std::function<void(Json::Value const& jValue)> receive_;
+        std::function<void(Json::Value const& jValue)> receive_;
         
         Subscription() = default;
         
@@ -2293,10 +2293,10 @@ namespace gatey {
             receive_(std::move(receive))
         {
         }
-	};
+    };
     
     //! internal
-	struct RemoteEmitter {
+    struct RemoteEmitter {
         std::string name_;
         SessionId sessionId_;
         
@@ -2307,10 +2307,10 @@ namespace gatey {
             sessionId_(sessionId)
         {
         }
-	};
+    };
 
     //! internal
-	struct RemoteSubscription {
+    struct RemoteSubscription {
         std::string name_;
         SessionId sessionId_;
         
@@ -2321,7 +2321,7 @@ namespace gatey {
             sessionId_(sessionId)
         {
         }
-	};
+    };
     
     //! open and close gates, which come in two forms: receive gates and send gates
     //! messages can be sent over send gates and a receive gate on the remote side will
@@ -2330,63 +2330,63 @@ namespace gatey {
     //! receive gate, the message is discarded
     //! If gates are opened or closes the remote side will be notified automatically
     //! Functions with the Unsynced postfix don't lock on mutex_ all other functions lock mutex_
-	struct GateY {
-	private:
+    struct GateY {
+    private:
         //! true if any gates were opened or closed
-		bool stateModified_;
+        bool stateModified_;
 
-		//! is true while thread_ is running
-		bool running_;
+        //! is true while thread_ is running
+        bool running_;
 
         //! WebSocket server which does the actual network stuff
-		std::unique_ptr<WebSocketQueue> webSocket_;
+        std::unique_ptr<WebSocketQueue> webSocket_;
 
         //! Runs the network and dispatching work
-		std::thread thread_;
-		std::mutex mutex_;
+        std::thread thread_;
+        std::mutex mutex_;
 
 #if defined(_MSC_VER)
-		//! msvc deadlocks if thread::join is called after main exits, see ~GateY for more details
-		std::mutex mutexThreadRunning_;
+        //! msvc deadlocks if thread::join is called after main exits, see ~GateY for more details
+        std::mutex mutexThreadRunning_;
 #endif
 
-		std::vector<Subscription> subscriptions_;
-		std::vector<RemoteSubscription> remoteSubscriptions_;
-		std::vector<Emitter> emitters_;
-		std::vector<RemoteEmitter> remoteEmitters_;
+        std::vector<Subscription> subscriptions_;
+        std::vector<RemoteSubscription> remoteSubscriptions_;
+        std::vector<Emitter> emitters_;
+        std::vector<RemoteEmitter> remoteEmitters_;
 
         //! List of callback that have to be called, callbacks aren't called while
         //! mutex_ is locked because the callback should be able to call GateY functions
         //! They are collected and called at a later time
-		std::vector<std::function<void()>> callbacks_;
+        std::vector<std::function<void()>> callbacks_;
 
         //! Send a json package to remote
-		void sendUnsynced(std::set<SessionId> sessions, Json::Value const& jValue);
+        void sendUnsynced(std::set<SessionId> sessions, Json::Value const& jValue);
         
         //! Send a json package to all remotes
         void broadcastUnsynced(Json::Value const& jValue);
 
         //! Send a list of open send and receive gates to remote
-		void sendStateUnsynced();
+        void sendStateUnsynced();
 
         //! Handle a message receive from remote, messages include:
         //! - state change
         //! - content
         //! - init
-		void handleMessageUnsynced(InMessage const& message);
+        void handleMessageUnsynced(InMessage const& message);
 
 
         //! Calls all the callbacks_ and clears it
-		void processCallbacks();
+        void processCallbacks();
 
         //! Handles new messages from webSocket_
-		void work();
+        void work();
 
         //! Close the receive gate with the given name and sends a state update
-		void unsubscribeUnsynced(std::string const& name);
+        void unsubscribeUnsynced(std::string const& name);
 
         //! Close the send gate with the given name
-		void closeEmitterUnsynced(std::string const& name);
+        void closeEmitterUnsynced(std::string const& name);
 
         //! Start the server
         void start();
@@ -2405,13 +2405,13 @@ namespace gatey {
         
         void eraseRemoteEmitters(SessionId sessionId);
 
-	public:
+    public:
         
         //! Starts the server
-		GateY();
+        GateY();
 
         //! Stops the server
-		~GateY();
+        ~GateY();
         
         // Subscribe to receive all messages with the given name
         void subscribe(std::string const& name, std::function<void(Json::Value const& jValue)> receive);
@@ -2428,10 +2428,10 @@ namespace gatey {
         // Unannounce the sending of messages with the given name
         void closeEmitter(std::string const& name);
         
-	};
+    };
 
     //! global GateY, Variables use this global gateY to open gates
-	extern std::shared_ptr<GateY> global;
+    extern std::shared_ptr<GateY> global;
 
 }
 
@@ -2460,87 +2460,87 @@ namespace gatey {
 
 namespace gatey {
 
-	//! WriteVariable of type T that is connected to a remote ReadVariable, if it is set the remote ReadVariable
-	//! will reflect the change
-	//TODO: add emplace, for example for tuple: emplace(x, y) instead of set(std::make_tuple(x, y))
-	template<typename T>
-	struct WriteVariable {
-	private:
-		std::string name_;
+    //! WriteVariable of type T that is connected to a remote ReadVariable, if it is set the remote ReadVariable
+    //! will reflect the change
+    //TODO: add emplace, for example for tuple: emplace(x, y) instead of set(std::make_tuple(x, y))
+    template<typename T>
+    struct WriteVariable {
+    private:
+        std::string name_;
 
-		//! GateY used to send changes
-		std::shared_ptr<GateY> gateY_;
+        //! GateY used to send changes
+        std::shared_ptr<GateY> gateY_;
 
-	public:
+    public:
 
-		//! Using the given gatey or gatey::global as default, opens a send gate with the given name
-		WriteVariable(std::string name, std::shared_ptr<GateY> gateY = gatey::global) :
+        //! Using the given gatey or gatey::global as default, opens a send gate with the given name
+        WriteVariable(std::string name, std::shared_ptr<GateY> gateY = gatey::global) :
             name_(std::move(name)),
-			gateY_(gateY)
-		{
-			gateY_->openEmitter(name_);
-		}
+            gateY_(gateY)
+        {
+            gateY_->openEmitter(name_);
+        }
 
-		//! Closes the send gate with the given name
-		~WriteVariable() {
-			gateY_->closeEmitter(name_);
-		}
+        //! Closes the send gate with the given name
+        ~WriteVariable() {
+            gateY_->closeEmitter(name_);
+        }
 
-		//! Set the value of this variable, the value is serialized to json using the gatey::serialize function
-		//! and then sent to remote if it has a corresponding ReadVariable
-		//TODO: Only serialize if 
-		void set(T const& value) {
+        //! Set the value of this variable, the value is serialized to json using the gatey::serialize function
+        //! and then sent to remote if it has a corresponding ReadVariable
+        //TODO: Only serialize if 
+        void set(T const& value) {
             Json::Value jValue;
             write(value, jValue);
-			gateY_->emit(name_, jValue);
-		}
-	};
+            gateY_->emit(name_, jValue);
+        }
+    };
 
-	//! ReadVariable of type T that is connected to a remote WriteVariable, if the remote WriteVariable is
-	//! changed, the change is reflected in the ReadVariable
+    //! ReadVariable of type T that is connected to a remote WriteVariable, if the remote WriteVariable is
+    //! changed, the change is reflected in the ReadVariable
     template<typename T>
-	struct ReadVariable {
-	private:
-		std::string name_;
+    struct ReadVariable {
+    private:
+        std::string name_;
 
-		//! current value
-		T content_;
+        //! current value
+        T content_;
 
-		//! to make sure the variable doesn't change while being read
-		std::recursive_mutex mutex_;
+        //! to make sure the variable doesn't change while being read
+        std::recursive_mutex mutex_;
 
-		//! GateY used to receive changes
-		std::shared_ptr<GateY> gateY_;
+        //! GateY used to receive changes
+        std::shared_ptr<GateY> gateY_;
 
-	public:
-		std::function<void(T const& content)> onChange;
+    public:
+        std::function<void(T const& content)> onChange;
 
-		//! Using the given gatey or gatey::global as default, opens a read gate with the given name,
-		//! get will return content if the remote WriteVariable was never set.
-		ReadVariable(std::string name, T content, std::shared_ptr<GateY> gateY = gatey::global) :
-			name_(std::move(name)),
-			content_(std::move(content)),
-			gateY_(gateY)
-		{
-			gateY_->subscribe(name_, [this](Json::Value const& jValue) {
-				std::lock_guard<std::recursive_mutex> guard(mutex_);
-				read(jValue, content_);
-				if (onChange != nullptr)
-					onChange(content_);
-			});
-		}
+        //! Using the given gatey or gatey::global as default, opens a read gate with the given name,
+        //! get will return content if the remote WriteVariable was never set.
+        ReadVariable(std::string name, T content, std::shared_ptr<GateY> gateY = gatey::global) :
+            name_(std::move(name)),
+            content_(std::move(content)),
+            gateY_(gateY)
+        {
+            gateY_->subscribe(name_, [this](Json::Value const& jValue) {
+                std::lock_guard<std::recursive_mutex> guard(mutex_);
+                read(jValue, content_);
+                if (onChange != nullptr)
+                    onChange(content_);
+            });
+        }
 
-		//! Closes the receive gate with the given name
-		~ReadVariable() {
-			gateY_->unsubscribe(name_);
-		}
+        //! Closes the receive gate with the given name
+        ~ReadVariable() {
+            gateY_->unsubscribe(name_);
+        }
 
-		//! Returns the current value, locks while the variable is being updated
-		T get() {
-			std::lock_guard<std::recursive_mutex> guard(mutex_);
-			return content_;
-		}
-	};
+        //! Returns the current value, locks while the variable is being updated
+        T get() {
+            std::lock_guard<std::recursive_mutex> guard(mutex_);
+            return content_;
+        }
+    };
 }
 
 #endif // GATEY_VARIABLE_HPP

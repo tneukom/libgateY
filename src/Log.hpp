@@ -13,8 +13,8 @@
 #include <string>
 
 namespace gatey {
-	void log(const char* str);
-	void log(std::string const& str);
+    void log(const char* str);
+    void log(std::string const& str);
 }
 
 #define GATEY_LOG(str) gatey::log(str)
