@@ -5,7 +5,8 @@ Visualize and control C++ data using the web browser. Single hpp/cpp, no depende
 What is it for?
 ---------------
 
-Use a web browser to easily visualize data from your C++ program and control it’s behaviour. 
+Use a web browser to easily visualize data from your C++ program and control it’s behaviour. libgateY allows you to send data over a WebSocket to the browser in a very simple way. Here's a minimal example:
+
 
 Who is it for?
 --------------

@@ -31,15 +31,15 @@ namespace gatey {
         std::vector<char> buffer_;
         std::size_t len_;
 
-		//! = delete
-		OutMessage(OutMessage const& other);
+        //! = delete
+        OutMessage(OutMessage const& other);
 
-		//! = delete
-		OutMessage& operator=(OutMessage const& other);
+        //! = delete
+        OutMessage& operator=(OutMessage const& other);
         
     public:
         
-		//! = default
+        //! = default
         OutMessage();
         OutMessage(std::set<SessionId> destinations, std::string content);
         

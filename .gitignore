@@ -22,4 +22,5 @@ xcuserdata
 profile
 *.moved-aside
 DerivedData
-Visual Studio/external/
+Visual Studio 2013/external/
+Visual Studio 2012/external/

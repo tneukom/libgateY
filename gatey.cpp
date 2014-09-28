@@ -1753,8 +1753,8 @@ namespace gatey {
 
 namespace gatey {
 
-	OutMessage::OutMessage() {
-	}
+    OutMessage::OutMessage() {
+    }
     
     OutMessage::OutMessage(std::set<SessionId> destinations, std::string content) :
         content_(std::move(content)),
@@ -1808,8 +1808,8 @@ namespace gatey {
     struct PerSession {
         SessionId sessionId;
 
-		PerSession(SessionId sessionId) : sessionId(sessionId) {
-		}
+        PerSession(SessionId sessionId) : sessionId(sessionId) {
+        }
     };
 
     struct LibWebsocketsCallbackReasonBoxed {

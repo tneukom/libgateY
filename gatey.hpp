@@ -1893,15 +1893,15 @@ namespace gatey {
         std::vector<char> buffer_;
         std::size_t len_;
 
-		//! = delete
-		OutMessage(OutMessage const& other);
+        //! = delete
+        OutMessage(OutMessage const& other);
 
-		//! = delete
-		OutMessage& operator=(OutMessage const& other);
+        //! = delete
+        OutMessage& operator=(OutMessage const& other);
         
     public:
         
-		//! = default
+        //! = default
         OutMessage();
         OutMessage(std::set<SessionId> destinations, std::string content);
         
@@ -2289,9 +2289,9 @@ namespace gatey {
     struct Emitter {
         std::string name_;
         
-		//! = default
+        //! = default
         Emitter() {
-		}
+        }
         
         Emitter(std::string name) :
             name_(std::move(name))
@@ -2309,9 +2309,9 @@ namespace gatey {
         // std::string identifier_; maybe in the future
         std::function<void(Json::Value const& jValue)> receive_;
         
-		//! = default
+        //! = default
         Subscription() {
-		}
+        }
         
         Subscription(std::string name, std::function<void(Json::Value const& jValue)> receive) :
             name_(std::move(name)),
@@ -2325,9 +2325,9 @@ namespace gatey {
         std::string name_;
         SessionId sessionId_;
         
-		//! = default
+        //! = default
         RemoteEmitter() {
-		}
+        }
         
         RemoteEmitter(std::string name, SessionId sessionId) :
             name_(std::move(name)),
@@ -2341,9 +2341,9 @@ namespace gatey {
         std::string name_;
         SessionId sessionId_;
         
-		//! = default
+        //! = default
         RemoteSubscription() {
-		}
+        }
         
         RemoteSubscription(std::string name, SessionId sessionId) :
             name_(std::move(name)),
