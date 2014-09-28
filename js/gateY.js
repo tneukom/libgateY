@@ -7,8 +7,9 @@
 
 var gatey = {}
 
-gatey.GateY = function() {
-    this.websocket = new WebSocket('ws://127.0.0.1:9000', 'gatey');
+gatey.GateY = function(address) {
+    address = address || 'ws://127.0.0.1:9000';
+    this.websocket = new WebSocket(address, 'gatey');
     this.websocket.binaryType = "arraybuffer";
     this.connected = false;
     this.subscriptions = [];
@@ -206,8 +207,6 @@ gatey.GateY.prototype.closeEmitter = function(name) {
         this.sendState();
     }
 };
-
-gatey.global = new gatey.GateY();
 
 /**
  * WriteVariable that is connected to a remote ReadVariable, if it is set the remote ReadVariable

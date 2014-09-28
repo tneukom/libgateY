@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<body>
+<link href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
+<script src="gateY.js"></script>
+<script>
+    "use strict";
+
+    $(document).ready(function() {
+        gatey.global = new gatey.GateY('ws://127.0.0.1:9000');
+
+        var gDt = new gatey.WriteVariable('dt');
+        var gPosition = new gatey.ReadVariable('position', [0, 0]);
+
+        $('#slider_dt').slider({
+            min: 0, max: 100, value: 1,
+            slide: function() { gDt.set($("#slider_dt").slider("value") / 10); }
+        });
+
+        var ctx = document.getElementById('particle_trace').getContext('2d');
+        gPosition.onChange = function(position) {
+            ctx.fillRect(position[0] - 2, position[1] - 2, 4, 4);
+        };
+    });
+</script>
+<div id="slider_dt"></div>
+<canvas id="particle_trace" width="600" height="600"></canvas>
+</body>
+</html>

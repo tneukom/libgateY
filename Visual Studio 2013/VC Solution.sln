@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libwebsockets", "libwebsock
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExampleSpaceship", "ExampleSpaceship\ExampleSpaceship.vcxproj", "{3E651902-431A-491C-A628-1C8CD3CCC01A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExampleBrownianMotion", "ExampleBrownianMotion\ExampleBrownianMotion.vcxproj", "{985F63CF-A581-4459-85F7-C1CA412A5B33}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -39,6 +41,10 @@ Global
 		{3E651902-431A-491C-A628-1C8CD3CCC01A}.Debug|Win32.Build.0 = Debug|Win32
 		{3E651902-431A-491C-A628-1C8CD3CCC01A}.Release|Win32.ActiveCfg = Release|Win32
 		{3E651902-431A-491C-A628-1C8CD3CCC01A}.Release|Win32.Build.0 = Release|Win32
+		{985F63CF-A581-4459-85F7-C1CA412A5B33}.Debug|Win32.ActiveCfg = Debug|Win32
+		{985F63CF-A581-4459-85F7-C1CA412A5B33}.Debug|Win32.Build.0 = Debug|Win32
+		{985F63CF-A581-4459-85F7-C1CA412A5B33}.Release|Win32.ActiveCfg = Release|Win32
+		{985F63CF-A581-4459-85F7-C1CA412A5B33}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

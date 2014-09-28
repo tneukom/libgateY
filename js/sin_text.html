@@ -20,18 +20,17 @@
     $(function() {
         $('#slider_dt').slider({
             min: 0, max: 100, value: 1,
-            slide: refresh,
-            change: refresh
+            slide: refresh, change: refresh
         });
 
         $('#slider_c').slider({
             min: 0, max: 100, value: 1,
-            slide: refresh,
-            change: refresh
+            slide: refresh, change: refresh
         });
     });
 
     $(document).ready(function() {
+        gatey.global = new gatey.GateY('ws://127.0.0.1:9000');
 
         gDt = new gatey.WriteVariable('dt');
         gC = new gatey.WriteVariable('c');

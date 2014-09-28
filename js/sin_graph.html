@@ -14,6 +14,8 @@
 <script>
     "use strict";
 
+    gatey.global = new gatey.GateY('ws://127.0.0.1:9000');
+
     var width = 960, height = 500;
 
     var x = d3.scale.linear().range([0, width]).domain([0, 100]);
