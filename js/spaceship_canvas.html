@@ -17,6 +17,7 @@
     var gVelocity = new gatey.ReadVariable('velocity', 0);
     var gPower = new gatey.WriteVariable('power');
 
+    //Create a slider to control spaceship acceleration
     function slideUpdate() {
         gPower.set($("#slider_a").slider("value"));
     }
@@ -28,6 +29,7 @@
         });
     });
 
+    //Draw the spaceship trajectory
     var canvas = document.getElementById('spaceship_trace');
     var ctx = canvas.getContext('2d');
 
