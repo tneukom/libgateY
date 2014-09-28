@@ -5,8 +5,46 @@ Visualize and control C++ data using the web browser. Single hpp/cpp, no depende
 What is it for?
 ---------------
 
-Use a web browser to easily visualize data from your C++ program and control it’s behaviour. libgateY allows you to send data over a WebSocket to the browser in a very simple way. Here's a minimal example:
+Use a web browser to easily visualize data from your C++ program and control it’s behaviour. libgateY allows you to add variables shared between the native C++ code and the javascript code. Here's an example:
 
+##### C++
+```c++
+gatey::global = std::make_shared<gatey::GateY>();
+
+std::tuple<float, float> position(300.0f, 300.0f);
+gatey::WriteVariable<std::tuple<float, float>> gPosition("position");
+gatey::ReadVariable<float> gDt("dt", 0.01f);
+
+std::mt19937 gen;
+std::normal_distribution<float> normal(0, 1);
+
+while (true) {
+    std::get<0>(position) += gDt.get() * normal(gen);
+    std::get<1>(position) += gDt.get() * normal(gen);
+    gPosition.set(position);
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+}
+```
+
+##### Javascirpt
+```javascript
+$(document).ready(function() {
+    gatey.global = new gatey.GateY('ws://127.0.0.1:9000');
+
+    var gDt = new gatey.WriteVariable('dt');
+    var gPosition = new gatey.ReadVariable('position', [0, 0]);
+
+    $('#slider_dt').slider({
+        min: 0, max: 100, value: 1,
+        slide: function() { gDt.set($("#slider_dt").slider("value") / 10); }
+    });
+
+    var ctx = document.getElementById('particle_trace').getContext('2d');
+    gPosition.onChange = function(position) {
+        ctx.fillRect(position[0] - 2, position[1] - 2, 4, 4);
+    };
+});
+```
 
 Who is it for?
 --------------
