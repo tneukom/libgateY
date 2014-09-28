@@ -30,20 +30,25 @@ namespace gatey {
         
         std::vector<char> buffer_;
         std::size_t len_;
+
+		//! = delete
+		OutMessage(OutMessage const& other);
+
+		//! = delete
+		OutMessage& operator=(OutMessage const& other);
         
     public:
         
-        OutMessage() = default;
+		//! = default
+        OutMessage();
         OutMessage(std::set<SessionId> destinations, std::string content);
-        
-        OutMessage(OutMessage const& other) = delete;
         
         //OutMessage(OutMessage&& other) = default; thanks VS
 
         //! default move constructor
         OutMessage(OutMessage&& other);
         
-        OutMessage& operator=(OutMessage const& other) = delete;
+        
         
         //OutMessage& operator=(OutMessage&& other) = default;
 

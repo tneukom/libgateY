@@ -186,6 +186,20 @@ namespace gatey {
             static void deserializeTuple(Json::Value const& jTuple, TUPLE& tuple, Info const& info) {
             }
         };
+
+#if defined(_MSC_VER) && (_MSC_VER < 1800) //1800 is Visual Studio 2013
+
+        template<typename ARG0, typename ARG1, typename ARG2, typename ARG3, typename ARG4, typename ARG5>
+        void write(std::tuple<ARG0, ARG1, ARG2, ARG3, ARG4, ARG5> const& tuple, Json::Value& jTuple, Info const& info) {
+            SerializeTupleElements<0, std::tuple_size<decltype(tuple)>::value, decltype(tuple)>::writeTuple(tuple, jTuple, info);
+        }
+
+        template<typename ARG0, typename ARG1, typename ARG2, typename ARG3, typename ARG4, typename ARG5>
+        void read(Json::Value const& jTuple, std::tuple<ARG0, ARG1, ARG2, ARG3, ARG4, ARG5>& tuple, Info const& info) {
+            SerializeTupleElements<0, std::tuple_size<decltype(tuple)>::value, decltype(tuple)>::readTuple(jTuple, tuple, info);
+        }
+        
+#else
         
         template<typename... ARGS>
         void write(std::tuple<ARGS...> const& tuple, Json::Value& jTuple, Info const& info) {
@@ -196,6 +210,8 @@ namespace gatey {
         void read(Json::Value const& jTuple, std::tuple<ARGS...>& tuple, Info const& info) {
             SerializeTupleElements<0, sizeof...(ARGS), std::tuple<ARGS...>>::readTuple(jTuple, tuple, info);
         }
+
+#endif
         
         //void write(T const&, WriteArchive);
         //void read(ReadArchive, T&);

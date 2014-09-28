@@ -48,7 +48,9 @@ namespace gatey {
     struct Emitter {
         std::string name_;
         
-        Emitter() = default;
+		//! = default
+        Emitter() {
+		}
         
         Emitter(std::string name) :
             name_(std::move(name))
@@ -66,7 +68,9 @@ namespace gatey {
         // std::string identifier_; maybe in the future
         std::function<void(Json::Value const& jValue)> receive_;
         
-        Subscription() = default;
+		//! = default
+        Subscription() {
+		}
         
         Subscription(std::string name, std::function<void(Json::Value const& jValue)> receive) :
             name_(std::move(name)),
@@ -80,7 +84,9 @@ namespace gatey {
         std::string name_;
         SessionId sessionId_;
         
-        RemoteEmitter() = default;
+		//! = default
+        RemoteEmitter() {
+		}
         
         RemoteEmitter(std::string name, SessionId sessionId) :
             name_(std::move(name)),
@@ -94,7 +100,9 @@ namespace gatey {
         std::string name_;
         SessionId sessionId_;
         
-        RemoteSubscription() = default;
+		//! = default
+        RemoteSubscription() {
+		}
         
         RemoteSubscription(std::string name, SessionId sessionId) :
             name_(std::move(name)),

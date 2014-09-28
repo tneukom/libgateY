@@ -1892,20 +1892,25 @@ namespace gatey {
         
         std::vector<char> buffer_;
         std::size_t len_;
+
+		//! = delete
+		OutMessage(OutMessage const& other);
+
+		//! = delete
+		OutMessage& operator=(OutMessage const& other);
         
     public:
         
-        OutMessage() = default;
+		//! = default
+        OutMessage();
         OutMessage(std::set<SessionId> destinations, std::string content);
-        
-        OutMessage(OutMessage const& other) = delete;
         
         //OutMessage(OutMessage&& other) = default; thanks VS
 
         //! default move constructor
         OutMessage(OutMessage&& other);
         
-        OutMessage& operator=(OutMessage const& other) = delete;
+        
         
         //OutMessage& operator=(OutMessage&& other) = default;
 
@@ -2192,6 +2197,20 @@ namespace gatey {
             static void deserializeTuple(Json::Value const& jTuple, TUPLE& tuple, Info const& info) {
             }
         };
+
+#if defined(_MSC_VER) && (_MSC_VER < 1800) //1800 is Visual Studio 2013
+
+        template<typename ARG0, typename ARG1, typename ARG2, typename ARG3, typename ARG4, typename ARG5>
+        void write(std::tuple<ARG0, ARG1, ARG2, ARG3, ARG4, ARG5> const& tuple, Json::Value& jTuple, Info const& info) {
+            SerializeTupleElements<0, std::tuple_size<decltype(tuple)>::value, decltype(tuple)>::writeTuple(tuple, jTuple, info);
+        }
+
+        template<typename ARG0, typename ARG1, typename ARG2, typename ARG3, typename ARG4, typename ARG5>
+        void read(Json::Value const& jTuple, std::tuple<ARG0, ARG1, ARG2, ARG3, ARG4, ARG5>& tuple, Info const& info) {
+            SerializeTupleElements<0, std::tuple_size<decltype(tuple)>::value, decltype(tuple)>::readTuple(jTuple, tuple, info);
+        }
+        
+#else
         
         template<typename... ARGS>
         void write(std::tuple<ARGS...> const& tuple, Json::Value& jTuple, Info const& info) {
@@ -2202,6 +2221,8 @@ namespace gatey {
         void read(Json::Value const& jTuple, std::tuple<ARGS...>& tuple, Info const& info) {
             SerializeTupleElements<0, sizeof...(ARGS), std::tuple<ARGS...>>::readTuple(jTuple, tuple, info);
         }
+
+#endif
         
         //void write(T const&, WriteArchive);
         //void read(ReadArchive, T&);
@@ -2268,7 +2289,9 @@ namespace gatey {
     struct Emitter {
         std::string name_;
         
-        Emitter() = default;
+		//! = default
+        Emitter() {
+		}
         
         Emitter(std::string name) :
             name_(std::move(name))
@@ -2286,7 +2309,9 @@ namespace gatey {
         // std::string identifier_; maybe in the future
         std::function<void(Json::Value const& jValue)> receive_;
         
-        Subscription() = default;
+		//! = default
+        Subscription() {
+		}
         
         Subscription(std::string name, std::function<void(Json::Value const& jValue)> receive) :
             name_(std::move(name)),
@@ -2300,7 +2325,9 @@ namespace gatey {
         std::string name_;
         SessionId sessionId_;
         
-        RemoteEmitter() = default;
+		//! = default
+        RemoteEmitter() {
+		}
         
         RemoteEmitter(std::string name, SessionId sessionId) :
             name_(std::move(name)),
@@ -2314,7 +2341,9 @@ namespace gatey {
         std::string name_;
         SessionId sessionId_;
         
-        RemoteSubscription() = default;
+		//! = default
+        RemoteSubscription() {
+		}
         
         RemoteSubscription(std::string name, SessionId sessionId) :
             name_(std::move(name)),

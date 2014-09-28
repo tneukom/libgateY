@@ -12,6 +12,14 @@
 #include <cassert>
 #include <iostream>
 
+//Another fun VS 2012 fix
+#if defined(_MSC_VER) && (_MSC_VER < 1800) //1800 is Visual Studio 2013
+#include <float.h>
+#define ISFINITE(arg) _finite((arg))
+#else
+#define ISFINITE(arg) std::isfinite((arg))
+#endif
+
 namespace gatey {
     
     namespace serialize {
@@ -28,7 +36,7 @@ namespace gatey {
         
         //float
         void write(float value, Json::Value& jValue, Info const& info) {
-            if (!std::isfinite(value)) {
+            if (!ISFINITE(value)) {
                 jValue = Json::Value(0.0f);
                 std::cerr << "encountered nan or inf" << std::endl;
             }
@@ -41,7 +49,7 @@ namespace gatey {
         
         //double
         void write(double value, Json::Value& jValue, Info const& info) {
-            if (!std::isfinite(value)) {
+            if (!ISFINITE(value)) {
                 jValue = Json::Value(0.0f);
                 std::cerr << "encountered nan or inf" << std::endl;
             }

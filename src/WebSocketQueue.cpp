@@ -21,6 +21,9 @@
 
 
 namespace gatey {
+
+	OutMessage::OutMessage() {
+	}
     
     OutMessage::OutMessage(std::set<SessionId> destinations, std::string content) :
         content_(std::move(content)),
@@ -73,6 +76,9 @@ namespace gatey {
 
     struct PerSession {
         SessionId sessionId;
+
+		PerSession(SessionId sessionId) : sessionId(sessionId) {
+		}
     };
 
     struct LibWebsocketsCallbackReasonBoxed {
@@ -121,7 +127,7 @@ namespace gatey {
             break;
         }
         case LWS_CALLBACK_ESTABLISHED:
-            *perSession = { self->nextUniqueSessionId_ };
+            *perSession = PerSession(self->nextUniqueSessionId_);
             self->nextUniqueSessionId_++;
             self->sessions_.insert(perSession->sessionId);
             if (self->sessions_.size() > self->maxSessionCount_) {
