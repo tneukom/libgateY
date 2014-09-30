@@ -61,11 +61,35 @@ How do I use it?
 
 LibGateY tries to be as simple to deploy as possible, so it consists of only one .hpp and one .cpp file. It doesn’t have any dependecies. Just copy it into your project.
 
+Serialization
+-------------
+To send data structures from C++ to JS libGateY uses JSON. It can serialize the following types by default: int, float, double, char, std::string and std::vector<T>, std::map<std::string, T>, std::array<T, N> for any type T that is serializable. Here's an example of a custom type serializer:
+
+```C++
+struct Vec2 {
+    float x, y;
+};
+
+namespace gatey { namespace serialize {
+    //Serialize as std::tuple<float, float>
+    
+    void write(Vec2 const& value, Json::Value& jValue, Info info) {
+        write(std::make_tuple(value.x, value.y), jValue, info);
+    }
+    
+    void read(Json::Value const& jValue, Vec2& value, Info info) {
+        std::tuple<float, float> pair;
+        read(jValue, pair, info);
+        return Vec2(std::get<0>(pair), std::get<1>(pair));
+    }
+}}
+```
+
 Spaceship example
 -----------------
 
 ##### C++
-```c++
+```C++
 gatey::global = std::make_shared<gatey::GateY>();
 
 SDL_Init(SDL_INIT_EVERYTHING);
@@ -119,7 +143,7 @@ while (true){
 ```
 
 ##### Javascript
-```javascript
+```JavaScript
 var gPosition = new gatey.ReadVariable('position', 0);
 var gVelocity = new gatey.ReadVariable('velocity', 0);
 var gPower = new gatey.WriteVariable('power');
