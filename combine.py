@@ -173,7 +173,9 @@ header = [
 
     jsoncpp_note,
 
+    '#ifndef GATEY_USE_EXTERNAL_JSONCPP',
     source('src/json.hpp'),
+    '#endif //GATEY_USE_EXTERNAL_JSONCPP',
 
     gatey_note,
 
@@ -214,7 +216,9 @@ cpp = [
 
     jsoncpp_note,
 
+    '#ifndef GATEY_USE_EXTERNAL_JSONCPP',
     source('src/json.cpp'),
+    '#endif //GATEY_USE_EXTERNAL_JSONCPP',
 
     libwebsockets_note,
 

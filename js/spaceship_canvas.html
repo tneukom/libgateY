@@ -13,6 +13,8 @@
 <script>
     "use strict";
 
+    gatey.global = new gatey.GateY('ws://127.0.0.1:9000');
+
     var gPosition = new gatey.ReadVariable('position', 0);
     var gVelocity = new gatey.ReadVariable('velocity', 0);
     var gPower = new gatey.WriteVariable('power');

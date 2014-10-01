@@ -8,6 +8,7 @@
  * Distributed under MIT license, or public domain if desired and
  */
 
+#ifndef GATEY_USE_EXTERNAL_JSONCPP
 /***************************************************
  * src/json.hpp
  ***************************************************/
@@ -1850,6 +1851,7 @@ JSON_API std::ostream &operator<<(std::ostream &, const Value &root);
 #endif // CPPTL_JSON_ASSERTIONS_H_INCLUDED
 
 #endif //ifndef JSON_AMALGATED_H_INCLUDED
+#endif //GATEY_USE_EXTERNAL_JSONCPP
 
 /* gateY code
  * Copyright(C) 2014 Tobias Neukom <tneukom@gmail.com>
@@ -2017,10 +2019,17 @@ namespace gatey {
 #ifndef GATEY_SERIALIZE_H
 #define GATEY_SERIALIZE_H
 
-#ifndef GATEY_IS_AMALGAMATION
-#include "json.hpp"
+#if defined(GATEY_USE_EXTERNAL_JSONCPP)
+    #if defined(GATEY_EXTERNAL_JSONCPP_PATH)
+        #include GATEY_EXTERNAL_JSONCPP_PATH
+    #else
+        #include <json/json.h>
+    #endif
+#else
+    #if !defined(GATEY_IS_AMALGAMATION)
+        #include "json.hpp"
+    #endif
 #endif
-
 
 #include <functional>
 #include <vector>

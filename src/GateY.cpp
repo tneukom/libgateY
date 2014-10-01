@@ -7,8 +7,6 @@
 #include "GateY.hpp"
 #include "WebSocketQueue.hpp"
 #include "Log.hpp"
-
-#include "json.hpp"
 #endif
 
 #include <algorithm>
@@ -18,8 +16,6 @@
 namespace gatey {
 
     std::shared_ptr<GateY> global;
-
-
 
     GateY::GateY() :
         stateModified_(false)

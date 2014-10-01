@@ -6,10 +6,17 @@
 #ifndef GATEY_SERIALIZE_H
 #define GATEY_SERIALIZE_H
 
-#ifndef GATEY_IS_AMALGAMATION
-#include "json.hpp"
+#if defined(GATEY_USE_EXTERNAL_JSONCPP)
+    #if defined(GATEY_EXTERNAL_JSONCPP_PATH)
+        #include GATEY_EXTERNAL_JSONCPP_PATH
+    #else
+        #include <json/json.h>
+    #endif
+#else
+    #if !defined(GATEY_IS_AMALGAMATION)
+        #include "json.hpp"
+    #endif
 #endif
-
 
 #include <functional>
 #include <vector>

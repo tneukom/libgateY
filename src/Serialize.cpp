@@ -5,7 +5,6 @@
 
 #ifndef GATEY_IS_AMALGAMATION
 #include "Serialize.hpp"
-#include "json.hpp"
 #endif
 
 #include <cmath>

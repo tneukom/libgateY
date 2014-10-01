@@ -1274,8 +1274,6 @@ namespace gatey {
 #include "GateY.hpp"
 #include "WebSocketQueue.hpp"
 #include "Log.hpp"
-
-#include "json.hpp"
 #endif
 
 #include <algorithm>
@@ -1285,8 +1283,6 @@ namespace gatey {
 namespace gatey {
 
     std::shared_ptr<GateY> global;
-
-
 
     GateY::GateY() :
         stateModified_(false)
@@ -1644,7 +1640,6 @@ namespace gatey {
 
 #ifndef GATEY_IS_AMALGAMATION
 #include "Serialize.hpp"
-#include "json.hpp"
 #endif
 
 #include <cmath>
@@ -2019,6 +2014,7 @@ namespace gatey {
  * Distributed under MIT license, or public domain if desired and
  */
 
+#ifndef GATEY_USE_EXTERNAL_JSONCPP
 /***************************************************
  * src/json.cpp
  ***************************************************/
@@ -5624,6 +5620,7 @@ std::ostream &operator<<(std::ostream &sout, const Value &root) {
 } // namespace Json
 // vim: et ts=2 sts=2 sw=2 tw=0
 
+#endif //GATEY_USE_EXTERNAL_JSONCPP
 
 /* libwebsockets code
  * Copyright (C) 2010-2013 Andy Green <andy@warmcat.com>

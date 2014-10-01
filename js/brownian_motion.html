@@ -10,9 +10,9 @@
 <script>
     "use strict";
 
-    $(document).ready(function() {
-        gatey.global = new gatey.GateY('ws://127.0.0.1:9000');
+    gatey.global = new gatey.GateY('ws://127.0.0.1:9000');
 
+    $(document).ready(function() {
         var gDt = new gatey.WriteVariable('dt');
         var gPosition = new gatey.ReadVariable('position', [0, 0]);
 
